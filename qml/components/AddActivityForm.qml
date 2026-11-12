@@ -177,7 +177,7 @@ ColumnLayout {
                        ? Theme.accentBlueBg 
                        : (workHover.hovered || catWork.activeFocus ? Theme.surfaceCardHover : Theme.surfaceInput)
                 border.color: isSelected ? Theme.accentBlue : (catWork.activeFocus ? Theme.accentBlue : Theme.borderDefault)
-                border.width: isSelected || catWork.activeFocus ? 2 : 1
+                border.width: 1
 
                 Behavior on color { ColorAnimation { duration: 120 } }
                 Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -220,7 +220,7 @@ ColumnLayout {
                        ? Theme.accentAmberBg 
                        : (learnHover.hovered || catLearn.activeFocus ? Theme.surfaceCardHover : Theme.surfaceInput)
                 border.color: isSelected ? Theme.accentAmber : (catLearn.activeFocus ? Theme.accentAmber : Theme.borderDefault)
-                border.width: isSelected || catLearn.activeFocus ? 2 : 1
+                border.width: 1
 
                 Behavior on color { ColorAnimation { duration: 120 } }
                 Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -262,7 +262,7 @@ ColumnLayout {
                        ? Theme.accentGreenBg 
                        : (persHover.hovered || catPers.activeFocus ? Theme.surfaceCardHover : Theme.surfaceInput)
                 border.color: isSelected ? Theme.accentGreen : (catPers.activeFocus ? Theme.accentGreen : Theme.borderDefault)
-                border.width: isSelected || catPers.activeFocus ? 2 : 1
+                border.width: 1
 
                 Behavior on color { ColorAnimation { duration: 120 } }
                 Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -405,7 +405,7 @@ ColumnLayout {
                     readonly property bool isSelected: durationSpinBox.value === modelData
                     color: isSelected ? Theme.accentBlueBg : (pillHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
                     border.color: isSelected ? Theme.accentBlue : Theme.borderDefault
-                    border.width: isSelected ? 2 : 1
+                    border.width: 1
 
                     Behavior on color { ColorAnimation { duration: 120 } }
                     Behavior on border.color { ColorAnimation { duration: 120 } }

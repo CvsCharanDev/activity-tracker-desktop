@@ -1,6 +1,7 @@
 // StatsDashboard.qml — executive KPI metrics cards with responsive grid reflow and Lucide icons
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
 import ActivityTracker 1.0
 
 GridLayout {
@@ -25,6 +26,14 @@ GridLayout {
         color: cardHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard
         border.color: cardHover.hovered ? accentColor : Theme.borderDefault
         border.width: 1
+
+        layer.enabled: !Theme.isDark
+        layer.effect: MultiEffect {
+            shadowEnabled: !Theme.isDark
+            shadowColor: "#0A000000"
+            shadowBlur: 0.35
+            shadowVerticalOffset: 1
+        }
 
         Behavior on color { ColorAnimation { duration: 150 } }
         Behavior on border.color { ColorAnimation { duration: 150 } }

@@ -211,7 +211,7 @@ Item {
         property bool canAdd: false
 
         radius: 12
-        color: colDropArea.containsDrag ? Theme.surfaceCardHover : (Theme.isDark ? "#0E1420" : "#F8FAFC")
+        color: colDropArea.containsDrag ? Theme.surfaceCardHover : (Theme.isDark ? "#121215" : "#EDEFF2")
         border.color: colDropArea.containsDrag ? statusColor : Theme.borderDefault
         border.width: colDropArea.containsDrag ? 2 : 1
 
@@ -422,6 +422,14 @@ Item {
                         border.color: kHover.hovered ? (done ? Theme.accentGreen : Theme.accentBlue) : Theme.borderDefault
                         border.width: 1
                         opacity: (dragProxy.visible && dragProxy.currentItemRoot === cardItemRoot) ? 0.35 : (done ? 0.78 : 1.0)
+
+                        layer.enabled: !Theme.isDark
+                        layer.effect: MultiEffect {
+                            shadowEnabled: !Theme.isDark
+                            shadowColor: "#0A000000"
+                            shadowBlur: 0.3
+                            shadowVerticalOffset: 1
+                        }
 
                         HoverHandler { id: kHover }
 

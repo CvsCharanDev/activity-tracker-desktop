@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import QtQuick.Effects
 import ActivityTracker 1.0
 
 Rectangle {
@@ -42,6 +43,14 @@ Rectangle {
     border.color: cardHover.hovered ? (card.done ? Theme.accentGreen : Theme.accentBlue) : Theme.borderDefault
     border.width: 1
     opacity: card.done ? 0.78 : 1.0
+
+    layer.enabled: !Theme.isDark
+    layer.effect: MultiEffect {
+        shadowEnabled: !Theme.isDark
+        shadowColor: "#0A000000"
+        shadowBlur: 0.35
+        shadowVerticalOffset: 1
+    }
 
     // ── Smooth Hover Lift (Using transform so ListView item.y coordinate is NOT corrupted) ─
     transform: Translate {
