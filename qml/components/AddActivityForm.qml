@@ -320,24 +320,19 @@ ColumnLayout {
             spacing: 6
 
             Repeater {
-                model: [
-                    { name: "Urgent", color: "#EF4444", bg: "#2A1215", border: "#7F1D1D" },
-                    { name: "High",   color: "#F97316", bg: "#2A1805", border: "#7C2D12" },
-                    { name: "Medium", color: "#3B82F6", bg: "#0C1E3A", border: "#1E3A8A" },
-                    { name: "Low",    color: "#94A3B8", bg: "#1E293B", border: "#334155" }
-                ]
+                model: ["Urgent", "High", "Medium", "Low"]
 
                 delegate: Rectangle {
                     id: prioPill
                     Layout.fillWidth: true
                     implicitHeight: 32
                     radius: 6
-                    readonly property bool isSelected: formRoot.selectedPriority === modelData.name
+                    readonly property bool isSelected: formRoot.selectedPriority === modelData
 
                     color: isSelected 
-                           ? (Theme.isDark ? modelData.bg : Qt.lighter(modelData.bg, 3.5)) 
+                           ? Theme.priorityBg(modelData) 
                            : (prioHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
-                    border.color: isSelected ? modelData.color : Theme.borderDefault
+                    border.color: isSelected ? Theme.priorityColor(modelData) : Theme.borderDefault
                     border.width: isSelected ? 1.5 : 1
 
                     Behavior on color { ColorAnimation { duration: 120 } }
@@ -351,19 +346,19 @@ ColumnLayout {
                             implicitWidth: 6
                             implicitHeight: 6
                             radius: 3
-                            color: modelData.color
+                            color: Theme.priorityColor(modelData)
                         }
 
                         Text {
-                            text: modelData.name
+                            text: modelData
                             font.pixelSize: 11
                             font.bold: prioPill.isSelected
-                            color: prioPill.isSelected ? (Theme.isDark ? "#FFFFFF" : modelData.color) : Theme.textSecondary
+                            color: prioPill.isSelected ? Theme.priorityColor(modelData) : Theme.textSecondary
                         }
                     }
 
                     HoverHandler { id: prioHover; cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: formRoot.selectedPriority = modelData.name }
+                    TapHandler { onTapped: formRoot.selectedPriority = modelData }
                 }
             }
         }
@@ -518,52 +513,17 @@ ColumnLayout {
     }
 
     // ── Add Button ────────────────────────────────────────────────────────────
-    Button {
+    ShadcnButton {
         id: addBtn
         Layout.fillWidth: true
         Layout.topMargin: 6
-        implicitHeight: 46
-        text: "+ Log Activity"
-        font.pixelSize: 14
-        font.bold: true
+        size: "lg"
+        variant: "default"
+        iconName: "plus"
+        text: "Log Activity"
+        enabled: nameField.text.trim().length > 0
         activeFocusOnTab: true
         KeyNavigation.tab: nameField
-
-        enabled: nameField.text.trim().length > 0
-
-        contentItem: RowLayout {
-            anchors.centerIn: parent
-            spacing: 6
-            LucideIcon {
-                name: "plus"
-                size: 14
-                color: addBtn.enabled ? "#FFFFFF" : Theme.textMuted
-            }
-            Text {
-                text: "Log Activity"
-                font: addBtn.font
-                color: addBtn.enabled ? "#FFFFFF" : Theme.textMuted
-            }
-            Text {
-                text: "↵"
-                font.pixelSize: 13
-                font.bold: true
-                color: addBtn.enabled ? "#BAE6FD" : Theme.textMuted
-                visible: addBtn.enabled
-            }
-        }
-
-        background: Rectangle {
-            radius: 8
-            color: addBtn.enabled 
-                   ? (addBtn.down ? Qt.darker(Theme.accentBlue, 1.2) : (btnHover.hovered ? Qt.lighter(Theme.accentBlue, 1.1) : Theme.accentBlue)) 
-                   : Theme.surfaceBadge
-            border.color: addBtn.enabled ? Theme.accentBlueBorder : Theme.borderDefault
-            border.width: 1
-
-            HoverHandler { id: btnHover }
-            Behavior on color { ColorAnimation { duration: 120 } }
-        }
 
         onClicked: {
             activityService.addActivity(

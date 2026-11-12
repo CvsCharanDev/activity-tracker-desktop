@@ -10,10 +10,17 @@ ScrollView {
     clip: true
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-    ColumnLayout {
-        width: Math.min(analyticsRoot.width - 20, 840)
-        anchors.horizontalCenter: parent.horizontalCenter
-        spacing: 18
+    Item {
+        width: analyticsRoot.availableWidth
+        implicitHeight: analyticsCol.implicitHeight + 40
+
+        ColumnLayout {
+            id: analyticsCol
+            width: Math.min(parent.width - 32, 840)
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.topMargin: 16
+            spacing: 18
 
         // ── Top Header KPI Cards ──────────────────────────────────────────────
         RowLayout {
@@ -347,4 +354,5 @@ ScrollView {
             }
         }
     }
+}
 }

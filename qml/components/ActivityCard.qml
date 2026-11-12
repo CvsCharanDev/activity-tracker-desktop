@@ -110,31 +110,10 @@ Rectangle {
         return Math.max(card.extensionCount || 0, legacyCount)
     }
 
-    // Helper: Priority color
-    function priorityColor(prio) {
-        switch (prio) {
-        case "Urgent": return "#EF4444"
-        case "High":   return "#F97316"
-        case "Medium": return "#3B82F6"
-        default:       return "#94A3B8"
-        }
-    }
-    function priorityBg(prio) {
-        switch (prio) {
-        case "Urgent": return Theme.isDark ? "#2A1215" : "#FEF2F2"
-        case "High":   return Theme.isDark ? "#2A1805" : "#FFF7ED"
-        case "Medium": return Theme.isDark ? "#0C1E3A" : "#EFF6FF"
-        default:       return Theme.isDark ? "#1E293B" : "#F1F5F9"
-        }
-    }
-    function priorityBorder(prio) {
-        switch (prio) {
-        case "Urgent": return Theme.isDark ? "#7F1D1D" : "#FECACA"
-        case "High":   return Theme.isDark ? "#7C2D12" : "#FED7AA"
-        case "Medium": return Theme.isDark ? "#1E3A8A" : "#BFDBFE"
-        default:       return Theme.borderDefault
-        }
-    }
+    // Helper: Priority colors (delegated to centralized Theme)
+    function priorityColor(prio) { return Theme.priorityColor(prio) }
+    function priorityBg(prio) { return Theme.priorityBg(prio) }
+    function priorityBorder(prio) { return Theme.priorityBorder(prio) }
 
     // Left accent category strip
     Rectangle {
@@ -167,16 +146,12 @@ Rectangle {
         spacing: 12
 
         // ── Done / Toggle checkbox ────────────────────────────────────────────
-        CheckBox {
+        ShadcnCheckbox {
             id: doneBox
             Layout.alignment: Qt.AlignVCenter
             checked: card.done
-            enabled: true
-            Material.accent: Theme.accentGreen
-
-            ToolTip.visible: hovered
-            ToolTip.text: card.done ? "Click to Reopen Task" : "Mark as Completed"
-            ToolTip.delay: 350
+            accentColor: Theme.accentGreen
+            toolTipText: card.done ? "Click to Reopen Task" : "Mark as Completed"
 
             onClicked: {
                 if (card.done) {
@@ -217,8 +192,8 @@ Rectangle {
                     radius: 6
                     implicitWidth: extLabel.implicitWidth + 14
                     implicitHeight: 20
-                    color: Theme.isDark ? "#2A1838" : "#F3E8FF"
-                    border.color: Theme.accentPurple
+                    color: Theme.accentPurpleBg
+                    border.color: Theme.accentPurpleBorder
                     border.width: 1
 
                     RowLayout {
@@ -254,7 +229,7 @@ Rectangle {
                 // Priority Pill (Urgent, High, Medium, Low)
                 Rectangle {
                     id: prioBadge
-                    radius: 10
+                    radius: 6
                     implicitWidth: prioRow.implicitWidth + 14
                     implicitHeight: 22
                     color: card.priorityBg(card.activePriority)
@@ -294,7 +269,7 @@ Rectangle {
 
                 // Category pill
                 Rectangle {
-                    radius: 10
+                    radius: 6
                     implicitWidth: catRow.implicitWidth + 16
                     implicitHeight: 22
                     color: {
@@ -427,7 +402,7 @@ Rectangle {
                 // Status pill (Interactive Lifecycle Badge: Todo / In Progress / Done)
                 Rectangle {
                     id: statusBadge
-                    radius: 10
+                    radius: 6
                     implicitWidth: statusRow.implicitWidth + 16
                     implicitHeight: 22
                     color: {
@@ -504,7 +479,7 @@ Rectangle {
                 visible: card.done
                 implicitWidth: 32
                 implicitHeight: 32
-                radius: 8
+                radius: 6
                 color: reopenHover.hovered ? (Theme.isDark ? "#10281E" : "#DCFCE7") : "transparent"
                 border.color: reopenHover.hovered ? Theme.accentGreen : "transparent"
                 border.width: 1
@@ -534,7 +509,7 @@ Rectangle {
                 id: extBtn
                 implicitWidth: card.done ? 32 : 46
                 implicitHeight: 32
-                radius: 8
+                radius: 6
                 color: extHover.hovered 
                        ? (card.done ? (Theme.isDark ? "#2A1838" : "#F3E8FF") : (Theme.isDark ? "#17263C" : "#EFF6FF"))
                        : (cardHover.hovered ? (Theme.isDark ? "#1B2230" : "#F1F5F9") : "transparent")
@@ -582,7 +557,7 @@ Rectangle {
                 id: editBtn
                 implicitWidth: 32
                 implicitHeight: 32
-                radius: 8
+                radius: 6
                 color: editHover.hovered 
                        ? Theme.surfaceCardHover 
                        : (cardHover.hovered ? (Theme.isDark ? "#1B2230" : "#F1F5F9") : "transparent")
@@ -614,7 +589,7 @@ Rectangle {
                 id: delBtn
                 implicitWidth: 32
                 implicitHeight: 32
-                radius: 8
+                radius: 6
                 color: delHover.hovered 
                        ? (Theme.isDark ? "#3A1418" : "#FEE2E2") 
                        : (cardHover.hovered ? (Theme.isDark ? "#241014" : "#FFF1F2") : "transparent")

@@ -267,28 +267,13 @@ Rectangle {
                     }
 
                     // Submit Button
-                    Button {
+                    Components.ShadcnButton {
                         id: resetBtn
                         Layout.fillWidth: true
                         Layout.topMargin: 4
-                        implicitHeight: 46
-                        font.pixelSize: 14
-                        font.bold: true
-
-                        contentItem: Text {
-                            text: "Update Password"
-                            color: "#FFFFFF"
-                            font.bold: true
-                            font.pixelSize: 14
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        background: Rectangle {
-                            radius: 8
-                            color: resetBtn.down ? Qt.darker(Theme.accentBlue, 1.2) : (resetHover.hovered ? Qt.lighter(Theme.accentBlue, 1.1) : Theme.accentBlue)
-                            HoverHandler { id: resetHover }
-                        }
+                        size: "lg"
+                        variant: "default"
+                        text: "Update Password"
 
                         onClicked: {
                             authService.resetPassword(resetEmail.text, newPass.text);

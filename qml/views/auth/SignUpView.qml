@@ -350,28 +350,13 @@ Rectangle {
                     }
 
                     // Register Button
-                    Button {
+                    Components.ShadcnButton {
                         id: registerBtn
                         Layout.fillWidth: true
                         Layout.topMargin: 4
-                        implicitHeight: 46
-                        font.pixelSize: 14
-                        font.bold: true
-
-                        contentItem: Text {
-                            text: "Create Account"
-                            color: "#FFFFFF"
-                            font.bold: true
-                            font.pixelSize: 14
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        background: Rectangle {
-                            radius: 8
-                            color: registerBtn.down ? Qt.darker(Theme.accentBlue, 1.2) : (regHover.hovered ? Qt.lighter(Theme.accentBlue, 1.1) : Theme.accentBlue)
-                            HoverHandler { id: regHover }
-                        }
+                        size: "lg"
+                        variant: "default"
+                        text: "Create Account"
 
                         onClicked: {
                             authService.registerUser(nameInput.text, emailInput.text, passInput.text, signUpRoot.selectedGoalMinutes);

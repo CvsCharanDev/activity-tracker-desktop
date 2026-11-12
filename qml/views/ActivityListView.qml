@@ -17,6 +17,24 @@ ListView {
 
     signal editRequested(int index)
 
+    // Reactive model version counter — updates when activity state mutates
+    property int modelVersion: 0
+
+    Connections {
+        target: activityService
+        function onStatsChanged() { listView.modelVersion++ }
+        function onTotalDurationTodayChanged() { listView.modelVersion++ }
+        function onDataRefreshed() { listView.modelVersion++ }
+    }
+
+    Connections {
+        target: activityModel
+        function onDataChanged() { listView.modelVersion++ }
+        function onRowsInserted() { listView.modelVersion++ }
+        function onRowsRemoved() { listView.modelVersion++ }
+        function onModelReset() { listView.modelVersion++ }
+    }
+
     model: activityModel
 
     topMargin:    0
@@ -26,6 +44,7 @@ ListView {
 
     // Reactive count of visible activities
     function getVisibleCount() {
+        const _trigger = listView.modelVersion; // makes it reactive to model mutations!
         let count = 0;
         for (let i = 0; i < activityModel.count; ++i) {
             const item = activityModel.get(i);

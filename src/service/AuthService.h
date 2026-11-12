@@ -25,6 +25,7 @@ class AuthService : public QObject
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorChanged)
     Q_PROPERTY(bool hasSeenTour READ hasSeenTour WRITE setHasSeenTour NOTIFY preferencesChanged)
     Q_PROPERTY(int activeSessionsCount READ activeSessionsCount NOTIFY sessionsChanged)
+    Q_PROPERTY(QVariantList activeSessions READ activeSessions NOTIFY sessionsChanged)
     Q_PROPERTY(QString currentSessionId READ currentSessionId NOTIFY sessionChanged)
     Q_PROPERTY(QString sessionDeviceName READ sessionDeviceName CONSTANT)
 
@@ -64,6 +65,7 @@ public:
     // Cross-Device Preferences Sync & Guided Tour
     Q_INVOKABLE void completeTour();
     Q_INVOKABLE void resetTour();
+    Q_INVOKABLE void updateDailyGoal(int minutes);
     Q_INVOKABLE void syncPreferences(const QString &theme,
                                     const QString &sidebarDock,
                                     bool sidebarCollapsed,

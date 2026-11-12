@@ -127,17 +127,27 @@ Dialog {
 
         // ── Scrollable Form Body ──────────────────────────────────────────────
         ScrollView {
+            id: modalScroll
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
             ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-            ColumnLayout {
-                width: detailModal.width - 40
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 16
-                Layout.topMargin: 16
-                Layout.bottomMargin: 16
+            Item {
+                width: modalScroll.availableWidth
+                implicitHeight: modalFormCol.implicitHeight + 40
+
+                ColumnLayout {
+                    id: modalFormCol
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        top: parent.top
+                        leftMargin: 24
+                        rightMargin: 24
+                        topMargin: 20
+                    }
+                    spacing: 16
 
                 // ── 1. Activity Name Input ────────────────────────────────────
                 ColumnLayout {
@@ -270,10 +280,10 @@ Dialog {
 
                         Repeater {
                             model: [
-                                { name: "Urgent", color: "#EF4444", bg: "#2A1215", label: "Urgent (P1)" },
-                                { name: "High",   color: "#F97316", bg: "#2A1805", label: "High (P2)" },
-                                { name: "Medium", color: "#3B82F6", bg: "#0C1E3A", label: "Medium (P3)" },
-                                { name: "Low",    color: "#94A3B8", bg: "#1E293B", label: "Low (P4)" }
+                                { name: "Urgent", label: "Urgent (P1)" },
+                                { name: "High",   label: "High (P2)" },
+                                { name: "Medium", label: "Medium (P3)" },
+                                { name: "Low",    label: "Low (P4)" }
                             ]
 
                             delegate: Rectangle {
@@ -281,19 +291,19 @@ Dialog {
                                 implicitHeight: 34
                                 radius: 8
                                 readonly property bool isSelected: detailModal.currentPriority === modelData.name
-                                color: isSelected ? (Theme.isDark ? modelData.bg : Qt.lighter(modelData.bg, 3.5)) : (prioHov.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
-                                border.color: isSelected ? modelData.color : Theme.borderDefault
+                                color: isSelected ? Theme.priorityBg(modelData.name) : (prioHov.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
+                                border.color: isSelected ? Theme.priorityColor(modelData.name) : Theme.borderDefault
                                 border.width: isSelected ? 2 : 1
 
                                 RowLayout {
                                     anchors.centerIn: parent
                                     spacing: 5
-                                    Rectangle { implicitWidth: 6; implicitHeight: 6; radius: 3; color: modelData.color }
+                                    Rectangle { implicitWidth: 6; implicitHeight: 6; radius: 3; color: Theme.priorityColor(modelData.name) }
                                     Text {
                                         text: modelData.label
                                         font.pixelSize: 11
                                         font.bold: true
-                                        color: isSelected ? (Theme.isDark ? "#FFFFFF" : modelData.color) : Theme.textSecondary
+                                        color: isSelected ? Theme.priorityColor(modelData.name) : Theme.textSecondary
                                     }
                                 }
                                 HoverHandler { id: prioHov; cursorShape: Qt.PointingHandCursor }
@@ -474,6 +484,7 @@ Dialog {
                 }
             }
         }
+        }
 
         // ── Modal Footer Action Deck ──────────────────────────────────────────
         Rectangle {
@@ -492,28 +503,14 @@ Dialog {
                 spacing: 12
 
                 // Delete Button
-                Rectangle {
-                    implicitWidth: 120
-                    implicitHeight: 36
-                    radius: 8
-                    color: delBtnHov.hovered ? Theme.accentRedBg : "transparent"
-                    border.color: delBtnHov.hovered ? Theme.accentRed : Theme.borderDefault
-                    border.width: 1
-
-                    RowLayout {
-                        anchors.centerIn: parent
-                        spacing: 6
-                        LucideIcon { name: "trash-2"; size: 13; color: Theme.accentRed }
-                        Text { text: "Delete Task"; font.pixelSize: 12; font.bold: true; color: Theme.accentRed }
-                    }
-
-                    HoverHandler { id: delBtnHov; cursorShape: Qt.PointingHandCursor }
-                    TapHandler {
-                        onTapped: {
-                            detailModal.close()
-                            if (detailModal.activityIndex >= 0) {
-                                activityService.removeActivity(detailModal.activityIndex)
-                            }
+                ShadcnButton {
+                    variant: "destructive"
+                    iconName: "trash-2"
+                    text: "Delete Task"
+                    onClicked: {
+                        detailModal.close()
+                        if (detailModal.activityIndex >= 0) {
+                            activityService.removeActivity(detailModal.activityIndex)
                         }
                     }
                 }
@@ -521,56 +518,28 @@ Dialog {
                 Item { Layout.fillWidth: true }
 
                 // Cancel Button
-                Rectangle {
-                    implicitWidth: 84
-                    implicitHeight: 36
-                    radius: 8
-                    color: cancelHov.hovered ? Theme.surfaceCardHover : "transparent"
-                    border.color: Theme.borderDefault
-                    border.width: 1
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "Cancel"
-                        font.pixelSize: 12
-                        font.bold: true
-                        color: Theme.textSecondary
-                    }
-
-                    HoverHandler { id: cancelHov; cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: detailModal.close() }
+                ShadcnButton {
+                    variant: "outline"
+                    text: "Cancel"
+                    onClicked: detailModal.close()
                 }
 
                 // Save Changes Button
-                Rectangle {
-                    implicitWidth: 126
-                    implicitHeight: 36
-                    radius: 8
-                    color: saveHov.hovered ? Qt.lighter(Theme.accentBlue, 1.1) : Theme.accentBlue
-                    border.color: Theme.accentBlueBorder
-                    border.width: 1
-
-                    RowLayout {
-                        anchors.centerIn: parent
-                        spacing: 6
-                        LucideIcon { name: "check"; size: 13; color: "#FFFFFF" }
-                        Text { text: "Save Changes"; font.pixelSize: 12; font.bold: true; color: "#FFFFFF" }
-                    }
-
-                    HoverHandler { id: saveHov; cursorShape: Qt.PointingHandCursor }
-                    TapHandler {
-                        onTapped: {
-                            detailModal.close()
-                            if (detailModal.activityIndex >= 0) {
-                                activityService.updateActivity(
-                                    detailModal.activityIndex,
-                                    detailModal.currentName,
-                                    detailModal.currentCategory,
-                                    detailModal.currentDuration,
-                                    detailModal.currentStatus,
-                                    detailModal.currentPriority
-                                )
-                            }
+                ShadcnButton {
+                    variant: "default"
+                    iconName: "check"
+                    text: "Save Changes"
+                    onClicked: {
+                        detailModal.close()
+                        if (detailModal.activityIndex >= 0) {
+                            activityService.updateActivity(
+                                detailModal.activityIndex,
+                                detailModal.currentName,
+                                detailModal.currentCategory,
+                                detailModal.currentDuration,
+                                detailModal.currentStatus,
+                                detailModal.currentPriority
+                            )
                         }
                     }
                 }

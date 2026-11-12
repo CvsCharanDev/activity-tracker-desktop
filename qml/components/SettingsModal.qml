@@ -313,7 +313,7 @@ Dialog {
 
                         // Sessions List
                         Repeater {
-                            model: authService.activeSessions()
+                            model: authService.activeSessions
                             delegate: Rectangle {
                                 Layout.fillWidth: true
                                 height: 64
@@ -353,16 +353,12 @@ Dialog {
                                     Item { Layout.fillWidth: true }
 
                                     // Revoke Button (only for other devices)
-                                    Rectangle {
+                                    ShadcnButton {
                                         visible: !modelData.isCurrent
-                                        implicitWidth: 80; implicitHeight: 28; radius: 6
-                                        color: revokeHover.hovered ? Theme.accentRedBg : Theme.surfaceBadge
-                                        border.color: revokeHover.hovered ? Theme.accentRed : Theme.borderDefault; border.width: 1
-                                        Text { anchors.centerIn: parent; text: "Revoke"; font.bold: true; font.pixelSize: 11; color: Theme.accentRed }
-                                        HoverHandler { id: revokeHover; cursorShape: Qt.PointingHandCursor }
-                                        TapHandler {
-                                            onTapped: authService.revokeSession(modelData.id)
-                                        }
+                                        variant: "destructive"
+                                        size: "sm"
+                                        text: "Revoke"
+                                        onClicked: authService.revokeSession(modelData.id)
                                     }
                                 }
                             }
@@ -424,21 +420,14 @@ Dialog {
                                 Text { text: "Restart the 5-step interactive onboarding walkthrough"; font.pixelSize: 11; color: Theme.textMuted }
                             }
                             Item { Layout.fillWidth: true }
-                            Rectangle {
-                                implicitWidth: 120; implicitHeight: 32; radius: 6
-                                color: tourReplayHover.hovered ? Theme.accentBlueBg : Theme.surfaceBadge
-                                border.color: tourReplayHover.hovered ? Theme.accentBlue : Theme.borderDefault; border.width: 1
-                                RowLayout {
-                                    anchors.centerIn: parent; spacing: 6
-                                    Components.LucideIcon { name: "sparkles"; size: 12; color: Theme.accentBlue }
-                                    Text { text: "Start Tour"; font.bold: true; font.pixelSize: 11; color: Theme.accentBlue }
-                                }
-                                HoverHandler { id: tourReplayHover; cursorShape: Qt.PointingHandCursor }
-                                TapHandler {
-                                    onTapped: {
-                                        settingsModal.close()
-                                        settingsModal.tourRequested()
-                                    }
+                            ShadcnButton {
+                                variant: "outline"
+                                size: "sm"
+                                iconName: "sparkles"
+                                text: "Start Tour"
+                                onClicked: {
+                                    settingsModal.close()
+                                    settingsModal.tourRequested()
                                 }
                             }
                         }
@@ -454,21 +443,14 @@ Dialog {
                                 Text { text: "Remove completed tasks from list to keep workstation focused"; font.pixelSize: 11; color: Theme.textMuted }
                             }
                             Item { Layout.fillWidth: true }
-                            Rectangle {
-                                implicitWidth: 120; implicitHeight: 32; radius: 6
-                                color: clearHover.hovered ? Theme.accentRedBg : Theme.surfaceBadge
-                                border.color: clearHover.hovered ? Theme.accentRed : Theme.borderDefault; border.width: 1
-                                RowLayout {
-                                    anchors.centerIn: parent; spacing: 6
-                                    Components.LucideIcon { name: "trash-2"; size: 12; color: Theme.accentRed }
-                                    Text { text: "Clear Done"; font.bold: true; font.pixelSize: 11; color: Theme.accentRed }
-                                }
-                                HoverHandler { id: clearHover; cursorShape: Qt.PointingHandCursor }
-                                TapHandler {
-                                    onTapped: {
-                                        settingsModal.close()
-                                        settingsModal.clearDoneRequested()
-                                    }
+                            ShadcnButton {
+                                variant: "destructive"
+                                size: "sm"
+                                iconName: "trash-2"
+                                text: "Clear Done"
+                                onClicked: {
+                                    settingsModal.close()
+                                    settingsModal.clearDoneRequested()
                                 }
                             }
                         }

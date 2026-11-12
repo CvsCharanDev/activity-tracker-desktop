@@ -359,12 +359,11 @@ Rectangle {
                     RowLayout {
                         Layout.fillWidth: true
 
-                        CheckBox {
+                        Components.ShadcnCheckbox {
                             id: rememberBox
                             checked: true
                             text: "Remember me"
-                            font.pixelSize: 12
-                            Material.accent: Theme.accentBlue
+                            accentColor: Theme.accentBlue
                         }
 
                         Item { Layout.fillWidth: true }
@@ -381,27 +380,12 @@ Rectangle {
                     }
 
                     // Submit Button
-                    Button {
+                    Components.ShadcnButton {
                         id: submitBtn
                         Layout.fillWidth: true
-                        implicitHeight: 46
-                        font.pixelSize: 14
-                        font.bold: true
-
-                        contentItem: Text {
-                            text: "Sign In"
-                            color: "#FFFFFF"
-                            font.bold: true
-                            font.pixelSize: 14
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        background: Rectangle {
-                            radius: 8
-                            color: submitBtn.down ? Qt.darker(Theme.accentBlue, 1.2) : (subHover.hovered ? Qt.lighter(Theme.accentBlue, 1.1) : Theme.accentBlue)
-                            HoverHandler { id: subHover }
-                        }
+                        size: "lg"
+                        variant: "default"
+                        text: "Sign In"
 
                         onClicked: {
                             const ok = authService.login(emailInput.text, passwordInput.text, rememberBox.checked);
@@ -424,32 +408,14 @@ Rectangle {
                     }
 
                     // 1-Click Quick Demo Mode Button
-                    Rectangle {
+                    Components.ShadcnButton {
                         Layout.fillWidth: true
-                        implicitHeight: 40
-                        radius: 8
-                        color: demoHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge
-                        border.color: Theme.accentBlueBorder
-                        border.width: 1
+                        size: "default"
+                        variant: "outline"
+                        iconName: "zap"
+                        text: "1-Click Demo Login (Charan Developer)"
 
-                        Behavior on color { ColorAnimation { duration: 120 } }
-
-                        RowLayout {
-                            anchors.centerIn: parent
-                            spacing: 8
-                            Components.LucideIcon { name: "zap"; size: 13; color: Theme.accentBlue }
-                            Text {
-                                text: "1-Click Demo Login (Charan Developer)"
-                                font.pixelSize: 12
-                                font.bold: true
-                                color: Theme.accentBlue
-                            }
-                        }
-
-                        HoverHandler { id: demoHover }
-                        TapHandler {
-                            onTapped: authService.loginDemoUser()
-                        }
+                        onClicked: authService.loginDemoUser()
                     }
 
                     // Navigate to Sign Up Link

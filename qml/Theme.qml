@@ -23,36 +23,81 @@ QtObject {
     // ── Borders ───────────────────────────────────────────────────────────────
     readonly property color borderDefault:    isDark ? "#222D3D" : "#E2E8F0"
     readonly property color borderSubtle:     isDark ? "#1A2230" : "#CBD5E1"
-    readonly property color borderFocus:      isDark ? "#58A6FF" : "#2563EB"
+    readonly property color borderFocus:      isDark ? "#38BDF8" : "#0284C7"
 
     // ── Text Hierarchy ────────────────────────────────────────────────────────
     readonly property color textPrimary:      isDark ? "#F0F6FC" : "#0F172A"
-    readonly property color textSecondary:    isDark ? "#8B949E" : "#475569"
-    readonly property color textMuted:        isDark ? "#525E6F" : "#94A3B8"
+    readonly property color textSecondary:    isDark ? "#94A3B8" : "#475569"
+    readonly property color textMuted:        isDark ? "#64748B" : "#94A3B8"
 
-    // ── Semantic Accents: Blue (Default / Active) ─────────────────────────────
-    readonly property color accentBlue:       isDark ? "#58A6FF" : "#2563EB"
-    readonly property color accentBlueBg:     isDark ? "#0D1D30" : "#EFF6FF"
-    readonly property color accentBlueBorder: isDark ? "#1F6FEB" : "#93C5FD"
+    // ── Semantic Accents: Blue (Default / Active / Work) ──────────────────────
+    readonly property color accentBlue:       isDark ? "#38BDF8" : "#0284C7"
+    readonly property color accentBlueBg:     isDark ? "#0C2340" : "#F0F9FF"
+    readonly property color accentBlueBorder: isDark ? "#0369A1" : "#BAE6FD"
 
-    // ── Semantic Accents: Green (Completed / Success) ─────────────────────────
-    readonly property color accentGreen:      isDark ? "#3FB950" : "#16A34A"
-    readonly property color accentGreenBg:    isDark ? "#0F2818" : "#F0FDF4"
-    readonly property color accentGreenBorder:isDark ? "#238636" : "#86EFAC"
+    // ── Semantic Accents: Green (Completed / Success / Personal) ──────────────
+    readonly property color accentGreen:      isDark ? "#4ADE80" : "#16A34A"
+    readonly property color accentGreenBg:    isDark ? "#0B2616" : "#F0FDF4"
+    readonly property color accentGreenBorder:isDark ? "#166534" : "#BBF7D0"
 
-    // ── Semantic Accents: Amber (Learning / In-Progress) ──────────────────────
-    readonly property color accentAmber:      isDark ? "#D29922" : "#D97706"
-    readonly property color accentAmberBg:    isDark ? "#271E06" : "#FFFBEB"
-    readonly property color accentAmberBorder:isDark ? "#9E6A03" : "#FDE68A"
+    // ── Semantic Accents: Amber (Learning / In-Progress / Notice) ─────────────
+    readonly property color accentAmber:      isDark ? "#FBBF24" : "#D97706"
+    readonly property color accentAmberBg:    isDark ? "#2A1F06" : "#FFFBEB"
+    readonly property color accentAmberBorder:isDark ? "#92400E" : "#FDE68A"
 
-    // ── Semantic Accents: Purple (Time / Metrics) ─────────────────────────────
-    readonly property color accentPurple:     isDark ? "#A371F7" : "#7C3AED"
-    readonly property color accentPurpleBg:   isDark ? "#211533" : "#FAF5FF"
-    readonly property color accentPurpleBorder:isDark ?"#8957E5" : "#DDD6FE"
+    // ── Semantic Accents: Purple (Time / Extensions / Metrics) ────────────────
+    readonly property color accentPurple:     isDark ? "#C084FC" : "#7C3AED"
+    readonly property color accentPurpleBg:   isDark ? "#231138" : "#FAF5FF"
+    readonly property color accentPurpleBorder:isDark ?"#7E22CE" : "#DDD6FE"
 
-    // ── Semantic Accents: Red (Delete / Destructive) ──────────────────────────
-    readonly property color accentRed:        isDark ? "#F85149" : "#DC2626"
-    readonly property color accentRedBg:      isDark ? "#38171B" : "#FEF2F2"
-    readonly property color accentRedBorder:  isDark ? "#DA3633" : "#FCA5A5"
+    // ── Semantic Accents: Red (Delete / Destructive / Urgent) ─────────────────
+    readonly property color accentRed:        isDark ? "#F87171" : "#DC2626"
+    readonly property color accentRedBg:      isDark ? "#321217" : "#FEF2F2"
+    readonly property color accentRedBorder:  isDark ? "#991B1B" : "#FECACA"
+
+    // ── Semantic Priority Matrix (Urgent P1, High P2, Medium P3, Low P4) ──────
+    function priorityColor(p) {
+        switch(p) {
+        case "Urgent": return isDark ? "#F87171" : "#DC2626"
+        case "High":   return isDark ? "#FB923C" : "#EA580C"
+        case "Low":    return isDark ? "#94A3B8" : "#64748B"
+        default:       return isDark ? "#38BDF8" : "#0284C7" // Medium
+        }
+    }
+
+    function priorityBg(p) {
+        if (isDark) {
+            switch(p) {
+            case "Urgent": return "#321217"
+            case "High":   return "#2C1708"
+            case "Low":    return "#1E293B"
+            default:       return "#0C2340"
+            }
+        } else {
+            switch(p) {
+            case "Urgent": return "#FEF2F2"
+            case "High":   return "#FFF7ED"
+            case "Low":    return "#F1F5F9"
+            default:       return "#F0F9FF"
+            }
+        }
+    }
+
+    function priorityBorder(p) {
+        if (isDark) {
+            switch(p) {
+            case "Urgent": return "#991B1B"
+            case "High":   return "#9A3412"
+            case "Low":    return "#334155"
+            default:       return "#0369A1"
+            }
+        } else {
+            switch(p) {
+            case "Urgent": return "#FECACA"
+            case "High":   return "#FED7AA"
+            case "Low":    return "#CBD5E1"
+            default:       return "#BAE6FD"
+            }
+        }
+    }
 }
-

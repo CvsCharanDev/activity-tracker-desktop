@@ -25,13 +25,31 @@ ApplicationWindow {
         id: modernMenuRoot
         delegate: MenuItem {
             id: mItem
+            indicator: null // Suppresses default native checkbox overlay
+
             contentItem: RowLayout {
-                spacing: 10
+                spacing: 8
+
+                // shadcn-style vector checkmark indicator for checkable menu items
+                Item {
+                    implicitWidth: 14
+                    implicitHeight: 14
+                    visible: mItem.checkable
+
+                    Components.LucideIcon {
+                        anchors.centerIn: parent
+                        name: "check"
+                        size: 12
+                        color: mItem.highlighted ? Theme.accentBlue : Theme.textPrimary
+                        visible: mItem.checked
+                    }
+                }
+
                 Text {
                     Layout.fillWidth: true
                     text: mItem.text.replace(/&/g, "")
                     font.pixelSize: 12
-                    font.bold: mItem.highlighted
+                    font.bold: mItem.highlighted || mItem.checked
                     color: mItem.enabled ? (mItem.highlighted ? Theme.accentBlue : Theme.textPrimary) : Theme.textMuted
                     elide: Text.ElideRight
                 }
@@ -44,14 +62,14 @@ ApplicationWindow {
                 }
             }
             background: Rectangle {
-                implicitWidth: 200
-                implicitHeight: 30
+                implicitWidth: 260
+                implicitHeight: 32
                 radius: 6
                 color: mItem.highlighted ? Theme.surfaceBadge : "transparent"
             }
         }
         background: Rectangle {
-            implicitWidth: 210
+            implicitWidth: 260
             radius: 8
             color: Theme.surfaceCard
             border.color: Theme.borderDefault
@@ -560,10 +578,10 @@ ApplicationWindow {
                     id: timeframeBtn
                     implicitHeight: 32
                     implicitWidth: tfRow.implicitWidth + 24
-                    radius: 8
+                    radius: 6
                     color: tfHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge
                     border.color: tfMenu.visible ? Theme.accentBlue : Theme.borderDefault
-                    border.width: 1
+                    border.width: tfMenu.visible ? 2 : 1
 
                     Behavior on color { ColorAnimation { duration: 120 } }
                     Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -587,22 +605,32 @@ ApplicationWindow {
                             font.bold: true
                             color: Theme.textPrimary
                         }
+
+                        Components.LucideIcon {
+                            Layout.alignment: Qt.AlignVCenter
+                            name: "chevron-down"
+                            size: 12
+                            color: Theme.textMuted
+                        }
                     }
 
                     ToolTip.visible: tfHover.hovered
                     ToolTip.text: "Filter query timeframe"
                     ToolTip.delay: 300
 
-                    HoverHandler { id: tfHover }
+                    HoverHandler { id: tfHover; cursorShape: Qt.PointingHandCursor }
                     TapHandler {
                         onTapped: tfMenu.open()
                     }
 
-                    Menu {
+                    ModernMenu {
                         id: tfMenu
                         y: timeframeBtn.height + 4
+
                         Action {
                             text: "Today"
+                            checkable: true
+                            checked: root.activeTimeframe === "Today"
                             onTriggered: {
                                 root.activeTimeframe = "Today"
                                 appSettings.activeTimeframe = "Today"
@@ -610,6 +638,8 @@ ApplicationWindow {
                         }
                         Action {
                             text: "Last 7 Days"
+                            checkable: true
+                            checked: root.activeTimeframe === "Last 7 Days"
                             onTriggered: {
                                 root.activeTimeframe = "Last 7 Days"
                                 appSettings.activeTimeframe = "Last 7 Days"
@@ -617,6 +647,8 @@ ApplicationWindow {
                         }
                         Action {
                             text: "Last 30 Days"
+                            checkable: true
+                            checked: root.activeTimeframe === "Last 30 Days"
                             onTriggered: {
                                 root.activeTimeframe = "Last 30 Days"
                                 appSettings.activeTimeframe = "Last 30 Days"
@@ -624,6 +656,8 @@ ApplicationWindow {
                         }
                         Action {
                             text: "All Time"
+                            checkable: true
+                            checked: root.activeTimeframe === "All Time"
                             onTriggered: {
                                 root.activeTimeframe = "All Time"
                                 appSettings.activeTimeframe = "All Time"
@@ -637,7 +671,7 @@ ApplicationWindow {
                     id: refreshBtn
                     implicitWidth: 32
                     implicitHeight: 32
-                    radius: 8
+                    radius: 6
                     color: refreshHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge
                     border.color: Theme.borderDefault
                     border.width: 1
@@ -655,7 +689,7 @@ ApplicationWindow {
                     ToolTip.text: "Refresh Data from Database (F5 / Ctrl+R)"
                     ToolTip.delay: 300
 
-                    HoverHandler { id: refreshHover }
+                    HoverHandler { id: refreshHover; cursorShape: Qt.PointingHandCursor }
                     TapHandler {
                         onTapped: activityService.refresh()
                     }
@@ -665,12 +699,12 @@ ApplicationWindow {
 
                 // Quick stats pill in header
                 Rectangle {
-                    radius: 12
+                    radius: 6
                     color: Theme.surfaceBadge
                     border.color: Theme.borderDefault
                     border.width: 1
                     implicitWidth: headerStats.implicitWidth + 20
-                    implicitHeight: 28
+                    implicitHeight: 32
 
                     RowLayout {
                         id: headerStats
@@ -690,177 +724,111 @@ ApplicationWindow {
                     }
                 }
 
-                // User Profile Chip
-                Rectangle {
-                    radius: 14
-                    color: Theme.surfaceBadge
-                    border.color: Theme.borderDefault
-                    border.width: 1
-                    implicitWidth: userRow.implicitWidth + 20
-                    implicitHeight: 28
-
-                    RowLayout {
-                        id: userRow
-                        anchors.centerIn: parent
-                        spacing: 6
-                        Components.LucideIcon {
-                            Layout.alignment: Qt.AlignVCenter
-                            name: "user"
-                            size: 12
-                            color: Theme.accentBlue
-                        }
-                        Text {
-                            Layout.alignment: Qt.AlignVCenter
-                            text: authService.currentUserName.length > 0 ? authService.currentUserName : "User"
-                            color: Theme.textPrimary
-                            font.bold: true
-                            font.pixelSize: 12
-                        }
-                    }
-                }
-
-                // ── Interactive UI Tour Button ──────────────────────────────
-                Rectangle {
-                    id: tourBtn
-                    radius: 14
-                    color: tourBtnHover.hovered ? Theme.accentBlueBg : Theme.surfaceBadge
-                    border.color: tourBtnHover.hovered ? Theme.accentBlue : Theme.borderDefault
-                    border.width: 1
-                    implicitWidth: 76
-                    implicitHeight: 28
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
-
-                    RowLayout {
-                        anchors.centerIn: parent
-                        spacing: 5
-                        Components.LucideIcon {
-                            Layout.alignment: Qt.AlignVCenter
-                            name: "sparkles"
-                            size: 12
-                            color: Theme.accentBlue
-                        }
-                        Text {
-                            Layout.alignment: Qt.AlignVCenter
-                            text: "Tour"
-                            font.pixelSize: 11
-                            font.bold: true
-                            color: tourBtnHover.hovered ? Theme.accentBlue : Theme.textPrimary
-                        }
-                    }
-
-                    ToolTip.visible: tourBtnHover.hovered
-                    ToolTip.text: "Start Interactive Product Tour"
-                    ToolTip.delay: 300
-
-                    HoverHandler { id: tourBtnHover; cursorShape: Qt.PointingHandCursor }
-                    TapHandler {
-                        onTapped: guidedTour.startTour()
-                    }
-                }
-
-                // ── Workstation Settings Button ──────────────────────────────
-                Rectangle {
-                    id: settingsBtn
-                    radius: 14
-                    color: settingsBtnHover.hovered ? Theme.accentBlueBg : Theme.surfaceBadge
-                    border.color: settingsBtnHover.hovered ? Theme.accentBlue : Theme.borderDefault
-                    border.width: 1
-                    implicitWidth: 88
-                    implicitHeight: 28
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
-
-                    RowLayout {
-                        anchors.centerIn: parent
-                        spacing: 5
-                        Components.LucideIcon {
-                            Layout.alignment: Qt.AlignVCenter
-                            name: "settings"
-                            size: 12
-                            color: Theme.accentBlue
-                        }
-                        Text {
-                            Layout.alignment: Qt.AlignVCenter
-                            text: "Settings"
-                            font.pixelSize: 11
-                            font.bold: true
-                            color: settingsBtnHover.hovered ? Theme.accentBlue : Theme.textPrimary
-                        }
-                    }
-
-                    ToolTip.visible: settingsBtnHover.hovered
-                    ToolTip.text: "Workstation Preferences & Active Sessions"
-                    ToolTip.delay: 300
-
-                    HoverHandler { id: settingsBtnHover; cursorShape: Qt.PointingHandCursor }
-                    TapHandler {
-                        onTapped: settingsModal.open()
-                    }
-                }
-
-                // ── Theme Switcher Button (Dark / Light) ─────────────────────
+                // ── Theme Switcher Icon Button (Dark / Light) ────────────────
                 Rectangle {
                     id: themeToggleBtn
-                    radius: 14
+                    radius: 6
                     color: themeHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge
                     border.color: Theme.borderDefault
                     border.width: 1
-                    implicitWidth: 84
-                    implicitHeight: 28
+                    implicitWidth: 32
+                    implicitHeight: 32
 
                     Behavior on color { ColorAnimation { duration: 150 } }
 
-                    RowLayout {
+                    Components.LucideIcon {
                         anchors.centerIn: parent
-                        spacing: 6
-                        Components.LucideIcon {
-                            Layout.alignment: Qt.AlignVCenter
-                            name: Theme.isDark ? "moon" : "sun"
-                            size: 12
-                            color: Theme.accentAmber
-                        }
-                        Text {
-                            Layout.alignment: Qt.AlignVCenter
-                            text: Theme.isDark ? "Dark" : "Light"
-                            font.pixelSize: 11
-                            font.bold: true
-                            color: Theme.textPrimary
-                        }
+                        name: Theme.isDark ? "moon" : "sun"
+                        size: 14
+                        color: Theme.accentAmber
                     }
 
-                    HoverHandler { id: themeHover }
+                    ToolTip.visible: themeHover.hovered
+                    ToolTip.text: Theme.isDark ? "Switch to Light Mode (Ctrl+T)" : "Switch to Dark Mode (Ctrl+T)"
+                    ToolTip.delay: 300
+
+                    HoverHandler { id: themeHover; cursorShape: Qt.PointingHandCursor }
                     TapHandler {
                         onTapped: Theme.toggleTheme()
                     }
                 }
 
-                // Sign Out Button
+                // ── Executive User Account & Avatar Dropdown ──────────────────
                 Rectangle {
-                    id: logoutBtn
-                    radius: 14
-                    color: logoutHover.hovered ? Theme.accentRedBg : Theme.surfaceBadge
-                    border.color: logoutHover.hovered ? Theme.accentRedBorder : Theme.borderDefault
+                    id: userAccountBtn
+                    radius: 6
+                    color: userMenu.visible ? Theme.accentBlueBg : (userBtnHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge)
+                    border.color: userMenu.visible ? Theme.accentBlue : Theme.borderDefault
                     border.width: 1
-                    implicitWidth: 32
-                    implicitHeight: 28
+                    implicitWidth: userBtnRow.implicitWidth + 20
+                    implicitHeight: 32
 
                     Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on border.color { ColorAnimation { duration: 120 } }
 
-                    Components.LucideIcon {
+                    RowLayout {
+                        id: userBtnRow
                         anchors.centerIn: parent
-                        name: "log-out"
-                        size: 13
-                        color: logoutHover.hovered ? Theme.accentRed : Theme.textMuted
+                        spacing: 8
+
+                        // Initials Avatar
+                        Rectangle {
+                            implicitWidth: 22
+                            implicitHeight: 22
+                            radius: 11
+                            color: Theme.accentBlueBg
+                            border.color: Theme.accentBlueBorder
+                            border.width: 1
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: authService.currentUserName.length > 0 ? authService.currentUserName.charAt(0).toUpperCase() : "U"
+                                font.pixelSize: 10
+                                font.bold: true
+                                color: Theme.accentBlue
+                            }
+                        }
+
+                        Text {
+                            text: authService.currentUserName.length > 0 ? authService.currentUserName : "User Account"
+                            color: Theme.textPrimary
+                            font.bold: true
+                            font.pixelSize: 12
+                        }
+
+                        Components.LucideIcon {
+                            name: "chevron-down"
+                            size: 11
+                            color: Theme.textMuted
+                        }
                     }
 
-                    ToolTip.visible: logoutHover.hovered
-                    ToolTip.text: "Sign Out (Ctrl+L)"
+                    ToolTip.visible: userBtnHover.hovered
+                    ToolTip.text: "Account & Workstation Preferences"
                     ToolTip.delay: 300
 
-                    HoverHandler { id: logoutHover }
-                    TapHandler {
-                        onTapped: authService.logout()
+                    HoverHandler { id: userBtnHover; cursorShape: Qt.PointingHandCursor }
+                    TapHandler { onTapped: userMenu.open() }
+
+                    ModernMenu {
+                        id: userMenu
+                        y: userAccountBtn.height + 4
+
+                        Action {
+                            text: "&Workstation Settings..."
+                            shortcut: "Ctrl+,"
+                            onTriggered: settingsModal.open()
+                        }
+                        Action {
+                            text: "Start &Interactive Tour..."
+                            onTriggered: guidedTour.startTour()
+                        }
+                        MenuSeparator {}
+                        Action {
+                            text: "Sign &Out"
+                            shortcut: "Ctrl+L"
+                            onTriggered: authService.logout()
+                        }
                     }
                 }
             }
@@ -1189,12 +1157,12 @@ ApplicationWindow {
                             spacing: 6
 
                             Repeater {
-                                model: ["All", "In Progress", "Work", "Learning", "Personal", "Done"]
+                                model: ["All", "Work", "Learning", "Personal", "Done"]
                                 delegate: Rectangle {
                                     id: chip
-                                    implicitHeight: 28
+                                    implicitHeight: 32
                                     implicitWidth: chipLabel.implicitWidth + 18
-                                    radius: 14
+                                    radius: 6
                                     readonly property bool isSelected: root.activeCategoryFilter === modelData
 
                                     color: isSelected 
@@ -1214,7 +1182,7 @@ ApplicationWindow {
                                         color: chip.isSelected ? Theme.accentBlue : Theme.textSecondary
                                     }
 
-                                    HoverHandler { id: chipHover }
+                                    HoverHandler { id: chipHover; cursorShape: Qt.PointingHandCursor }
                                     TapHandler {
                                         onTapped: root.activeCategoryFilter = modelData
                                     }
@@ -1222,12 +1190,12 @@ ApplicationWindow {
                             }
                         }
 
-                        // Priority Filter Dropdown Pill (No arrow marks, clean executive styling)
+                        // Priority Filter Dropdown Pill
                         Rectangle {
                             id: prioFilterBtn
-                            implicitHeight: 28
+                            implicitHeight: 32
                             implicitWidth: prioFilterRow.implicitWidth + 20
-                            radius: 14
+                            radius: 6
                             readonly property bool isFiltered: root.activePriorityFilter !== "All"
                             color: isFiltered ? Theme.accentBlueBg : (prioFilterHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge)
                             border.color: isFiltered ? Theme.accentBlue : Theme.borderDefault
@@ -1261,6 +1229,12 @@ ApplicationWindow {
                                     font.bold: prioFilterBtn.isFiltered
                                     color: prioFilterBtn.isFiltered ? Theme.accentBlue : Theme.textSecondary
                                 }
+
+                                Components.LucideIcon {
+                                    name: "chevron-down"
+                                    size: 11
+                                    color: Theme.textMuted
+                                }
                             }
 
                             ToolTip.visible: prioFilterHover.hovered
@@ -1270,7 +1244,7 @@ ApplicationWindow {
                             HoverHandler { id: prioFilterHover; cursorShape: Qt.PointingHandCursor }
                             TapHandler { onTapped: prioFilterMenu.open() }
 
-                            Menu {
+                            ModernMenu {
                                 id: prioFilterMenu
                                 y: prioFilterBtn.height + 4
 

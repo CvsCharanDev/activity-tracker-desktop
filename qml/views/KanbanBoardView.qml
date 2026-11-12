@@ -16,6 +16,24 @@ Item {
 
     signal editRequested(int index)
 
+    // Reactive model mutation version counter — forces recalculation when activities update
+    property int modelVersion: 0
+
+    Connections {
+        target: activityService
+        function onStatsChanged() { kanbanRoot.modelVersion++ }
+        function onTotalDurationTodayChanged() { kanbanRoot.modelVersion++ }
+        function onDataRefreshed() { kanbanRoot.modelVersion++ }
+    }
+
+    Connections {
+        target: activityModel
+        function onDataChanged() { kanbanRoot.modelVersion++ }
+        function onRowsInserted() { kanbanRoot.modelVersion++ }
+        function onRowsRemoved() { kanbanRoot.modelVersion++ }
+        function onModelReset() { kanbanRoot.modelVersion++ }
+    }
+
     // Helper: Formats duration in both hours and minutes
     function formatDurationBoth(mins) {
         if (!mins || mins <= 0) return "0m"
@@ -122,13 +140,8 @@ Item {
                     radius: 4
                     implicitWidth: 16
                     implicitHeight: 18
-                    color: (dragProxy.priorityText === "Urgent") ? (Theme.isDark ? "#2A1215" : "#FEF2F2") :
-                           ((dragProxy.priorityText === "High") ? (Theme.isDark ? "#2A1805" : "#FFF7ED") :
-                           ((dragProxy.priorityText === "Low") ? (Theme.isDark ? "#1E293B" : "#F1F5F9") :
-                           (Theme.isDark ? "#0C1E3A" : "#EFF6FF")))
-                    border.color: (dragProxy.priorityText === "Urgent") ? "#EF4444" :
-                                  ((dragProxy.priorityText === "High") ? "#F97316" :
-                                  ((dragProxy.priorityText === "Low") ? "#94A3B8" : "#3B82F6"))
+                    color: Theme.priorityBg(dragProxy.priorityText)
+                    border.color: Theme.priorityBorder(dragProxy.priorityText)
                     border.width: 1
 
                     Rectangle {
@@ -136,9 +149,7 @@ Item {
                         implicitWidth: 6
                         implicitHeight: 6
                         radius: 3
-                        color: (dragProxy.priorityText === "Urgent") ? "#EF4444" :
-                               ((dragProxy.priorityText === "High") ? "#F97316" :
-                               ((dragProxy.priorityText === "Low") ? "#94A3B8" : "#3B82F6"))
+                        color: Theme.priorityColor(dragProxy.priorityText)
                     }
                 }
 
@@ -204,6 +215,7 @@ Item {
 
         // Reactive Column Count Calculator
         function getColumnCount() {
+            const _trigger = kanbanRoot.modelVersion; // subscribes to live model changes!
             let count = 0;
             for (let i = 0; i < activityModel.count; ++i) {
                 const item = activityModel.get(i);
@@ -250,6 +262,7 @@ Item {
                 } else {
                     activityService.setActivityStatus(itemIndex, colRoot.columnStatus)
                 }
+                kanbanRoot.modelVersion++
             }
         }
 
@@ -326,6 +339,7 @@ Item {
 
                     // Filter matching
                     readonly property bool matchesStatus: {
+                        const _ver = kanbanRoot.modelVersion;
                         if (colRoot.columnStatus === "Done") return done;
                         if (colRoot.columnStatus === "In Progress") return !done && itemStatus === "In Progress";
                         return !done && itemStatus !== "In Progress";
@@ -360,7 +374,7 @@ Item {
                         width: parent.width
                         height: 96
                         radius: 10
-                        color: done ? (Theme.isDark ? "#0E1C14" : "#F0FDF4") : (kHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard)
+                        color: done ? Theme.accentGreenBg : (kHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard)
                         border.color: done ? Theme.accentGreenBorder : (kHover.hovered ? Theme.accentBlue : Theme.borderDefault)
                         border.width: 1
                         opacity: (dragProxy.visible && dragProxy.currentItemRoot === cardItemRoot) ? 0.35 : 1.0
@@ -372,6 +386,10 @@ Item {
                             anchors.fill: parent
                             drag.target: dragProxy
                             drag.axis: Drag.XAndYAxis
+
+                            onDoubleClicked: {
+                                kanbanRoot.editRequested(cardItemRoot.modelIndex)
+                            }
 
                             onPressed: {
                                 let p = cardBox.mapToItem(kanbanRoot, 0, 0);
@@ -390,7 +408,6 @@ Item {
                             onReleased: {
                                 dragProxy.Drag.drop();
                                 dragProxy.visible = false;
-                                dragProxy.currentItemRoot = null;
                             }
                         }
 
@@ -413,6 +430,10 @@ Item {
                                     elide: Text.ElideRight
                                     font.strikeout: done
 
+                                    ToolTip.visible: titleHov.hovered
+                                    ToolTip.text: "Click or double-click to edit details"
+                                    ToolTip.delay: 300
+
                                     HoverHandler { id: titleHov; cursorShape: Qt.PointingHandCursor }
                                     TapHandler { onTapped: kanbanRoot.editRequested(cardItemRoot.modelIndex) }
                                 }
@@ -422,13 +443,8 @@ Item {
                                     radius: 4
                                     implicitWidth: 16
                                     implicitHeight: 18
-                                    color: (priority === "Urgent") ? (Theme.isDark ? "#2A1215" : "#FEF2F2") :
-                                           ((priority === "High") ? (Theme.isDark ? "#2A1805" : "#FFF7ED") :
-                                           ((priority === "Low") ? (Theme.isDark ? "#1E293B" : "#F1F5F9") :
-                                           (Theme.isDark ? "#0C1E3A" : "#EFF6FF")))
-                                    border.color: (priority === "Urgent") ? "#EF4444" :
-                                                  ((priority === "High") ? "#F97316" :
-                                                  ((priority === "Low") ? "#94A3B8" : "#3B82F6"))
+                                    color: Theme.priorityBg(priority)
+                                    border.color: Theme.priorityBorder(priority)
                                     border.width: 1
 
                                     Rectangle {
@@ -436,9 +452,7 @@ Item {
                                         implicitWidth: 6
                                         implicitHeight: 6
                                         radius: 3
-                                        color: (priority === "Urgent") ? "#EF4444" :
-                                               ((priority === "High") ? "#F97316" :
-                                               ((priority === "Low") ? "#94A3B8" : "#3B82F6"))
+                                        color: Theme.priorityColor(priority)
                                     }
 
                                     ToolTip.visible: prioCardHover.hovered
@@ -532,6 +546,30 @@ Item {
                                         Text { text: "Reopen"; font.pixelSize: 10; font.bold: true; color: Theme.accentGreen }
                                     }
                                     TapHandler { onTapped: activityService.reopenActivity(index) }
+                                }
+
+                                // Dedicated Edit Task Button (Available across ALL statuses: Todo, In Progress, Done)
+                                Rectangle {
+                                    implicitWidth: 24
+                                    implicitHeight: 22
+                                    radius: 6
+                                    color: editBtnHov.hovered ? Theme.surfaceBadge : "transparent"
+                                    border.color: editBtnHov.hovered ? Theme.borderDefault : "transparent"
+                                    border.width: 1
+
+                                    Components.LucideIcon {
+                                        anchors.centerIn: parent
+                                        name: "edit-3"
+                                        size: 11
+                                        color: editBtnHov.hovered ? Theme.accentBlue : Theme.textMuted
+                                    }
+
+                                    ToolTip.visible: editBtnHov.hovered
+                                    ToolTip.text: "Edit task details"
+                                    ToolTip.delay: 250
+
+                                    HoverHandler { id: editBtnHov; cursorShape: Qt.PointingHandCursor }
+                                    TapHandler { onTapped: kanbanRoot.editRequested(cardItemRoot.modelIndex) }
                                 }
                             }
                         }

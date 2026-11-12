@@ -87,6 +87,11 @@ set(QML_FILES
     qml/components/GuidedTour.qml
     qml/components/SettingsModal.qml
     qml/components/ActivityDetailModal.qml
+    qml/components/ShadcnCheckbox.qml
+    qml/components/ShadcnSelect.qml
+    qml/components/ShadcnButton.qml
+    qml/components/ShadcnInput.qml
+    qml/components/ShadcnBadge.qml
 )
 
 # Register Theme.qml as a QML singleton
@@ -110,6 +115,7 @@ qt_add_qml_module(ActivityTracker
         resources/icons/book-open.svg
         resources/icons/briefcase.svg
         resources/icons/check.svg
+        resources/icons/chevron-down.svg
         resources/icons/clock.svg
         resources/icons/cloud.svg
         resources/icons/copy.svg

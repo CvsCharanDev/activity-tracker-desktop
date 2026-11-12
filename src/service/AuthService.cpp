@@ -76,10 +76,19 @@ UserSession AuthService::createSessionForUser(const QString &userId)
         "linux";
 #endif
 
+    const QString thisDevice = sessionDeviceName();
+
+    // Revoke any previous active session from the same physical machine for this user
+    for (UserSession &s : m_sessions) {
+        if (s.userId == userId && s.deviceName == thisDevice && s.isValid()) {
+            s.isRevoked = true;
+        }
+    }
+
     const UserSession session = UserSession::create(
         userId,
         m_bearerToken,
-        sessionDeviceName(),
+        thisDevice,
         platform,
         30 // 30-day valid session
     );
@@ -408,14 +417,14 @@ QVariantList AuthService::activeSessions() const
 {
     QVariantList list;
     for (const UserSession &s : m_sessions) {
-        if (s.userId == m_currentUser.id) {
+        if (s.userId == m_currentUser.id && s.isValid()) {
             QVariantMap map;
             map["id"]           = s.id;
             map["deviceName"]   = s.deviceName;
             map["platform"]     = s.platform;
             map["lastActiveAt"] = s.lastActiveAt.toString(Qt::ISODate);
             map["isCurrent"]    = (s.id == m_currentSession.id);
-            map["isValid"]      = s.isValid();
+            map["isValid"]      = true;
             list.append(map);
         }
     }
@@ -430,6 +439,28 @@ void AuthService::completeTour()
 void AuthService::resetTour()
 {
     setHasSeenTour(false);
+}
+
+void AuthService::updateDailyGoal(int minutes)
+{
+    if (minutes <= 0) return;
+    m_currentUser.dailyGoalMinutes = minutes;
+    for (User &u : m_users) {
+        if (u.id == m_currentUser.id) {
+            u.dailyGoalMinutes = minutes;
+            break;
+        }
+    }
+    m_preferences.dailyGoalMinutes = minutes;
+    for (UserPreferences &p : m_userPreferencesList) {
+        if (p.userId == m_currentUser.id) {
+            p.dailyGoalMinutes = minutes;
+            break;
+        }
+    }
+    saveLocalData();
+    Q_EMIT authStateChanged();
+    Q_EMIT preferencesChanged();
 }
 
 void AuthService::syncPreferences(const QString &theme,
@@ -523,9 +554,14 @@ void AuthService::saveLocalData()
         userFile.write(QJsonDocument(userArray).toJson(QJsonDocument::Indented));
     }
 
-    // 2. Save Sessions
+    // 2. Save Sessions (clean up revoked or expired sessions older than 7 days)
     QJsonArray sessionArray;
-    for (const UserSession &s : m_sessions) sessionArray.append(s.toJson());
+    const QDateTime cutoff = QDateTime::currentDateTime().addDays(-7);
+    for (const UserSession &s : m_sessions) {
+        if (s.isValid() || (s.lastActiveAt >= cutoff)) {
+            sessionArray.append(s.toJson());
+        }
+    }
     QFile sessionFile(dir + "/sessions.json");
     if (sessionFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         sessionFile.write(QJsonDocument(sessionArray).toJson(QJsonDocument::Indented));
