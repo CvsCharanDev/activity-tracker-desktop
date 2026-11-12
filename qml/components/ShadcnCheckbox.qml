@@ -109,6 +109,23 @@ Item {
         id: checkToolTip
         visible: checkToolTip.text.length > 0 && checkHover.hovered
         delay: 350
+        padding: 4
+        leftPadding: 8
+        rightPadding: 8
+        topPadding: 4
+        bottomPadding: 4
+        contentItem: Text {
+            text: checkToolTip.text
+            font.pixelSize: 11
+            font.weight: Font.Medium
+            color: "#F8FAFC"
+        }
+        background: Rectangle {
+            color: Theme.isDark ? "#18181B" : "#0F172A"
+            radius: 5
+            border.color: Theme.isDark ? "#3F3F46" : "#1E293B"
+            border.width: 1
+        }
     }
 
     HoverHandler {

@@ -283,6 +283,11 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
+        if (ToolTip.toolTip) {
+            ToolTip.toolTip.font.pixelSize = 11
+            ToolTip.toolTip.delay = 350
+            ToolTip.toolTip.timeout = 3500
+        }
         if (appSettings.x >= 0 && appSettings.y >= 0) {
             root.x = appSettings.x
             root.y = appSettings.y
@@ -1155,24 +1160,25 @@ ApplicationWindow {
 
                         // Category Filter Chips
                         RowLayout {
-                            spacing: 6
+                            spacing: 4
 
                             Repeater {
                                 model: ["All", "Work", "Learning", "Personal"]
                                 delegate: Rectangle {
                                     id: chip
-                                    implicitHeight: 32
-                                    implicitWidth: chipLabel.implicitWidth + 18
+                                    implicitHeight: 30
+                                    implicitWidth: chipLabel.implicitWidth + 20
                                     radius: 6
                                     readonly property bool isSelected: root.activeCategoryFilter === modelData
 
                                     color: isSelected 
-                                           ? Theme.accentBlueBg 
-                                           : (chipHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge)
-                                    border.color: isSelected ? Theme.accentBlue : Theme.borderDefault
+                                           ? (Theme.isDark ? "#1E2A3F" : "#FFFFFF") 
+                                           : (chipHover.hovered ? Theme.surfaceCardHover : "transparent")
+                                    border.color: isSelected ? Theme.borderDefault : (chipHover.hovered ? Theme.borderSubtle : "transparent")
                                     border.width: 1
 
                                     Behavior on color { ColorAnimation { duration: 120 } }
+                                    Behavior on border.color { ColorAnimation { duration: 120 } }
 
                                     Text {
                                         id: chipLabel
@@ -1180,7 +1186,7 @@ ApplicationWindow {
                                         text: modelData
                                         font.pixelSize: 12
                                         font.bold: chip.isSelected
-                                        color: chip.isSelected ? Theme.accentBlue : Theme.textSecondary
+                                        color: chip.isSelected ? Theme.textPrimary : Theme.textSecondary
                                     }
 
                                     HoverHandler { id: chipHover; cursorShape: Qt.PointingHandCursor }
@@ -1216,7 +1222,7 @@ ApplicationWindow {
                                         case "Todo": return "list-todo";
                                         case "In Progress": return "zap";
                                         case "Done": return "check";
-                                        default: return "layers";
+                                        default: return "filter";
                                         }
                                     }
                                     size: 11
@@ -1365,7 +1371,7 @@ ApplicationWindow {
                             implicitHeight: 32
                             implicitWidth: 160
                             radius: 8
-                            color: Theme.surfaceBadge
+                            color: Theme.isDark ? "#0E1420" : "#F1F5F9"
                             border.color: Theme.borderDefault
                             border.width: 1
 
@@ -1379,8 +1385,8 @@ ApplicationWindow {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
                                     radius: 6
-                                    color: root.currentViewMode === "list" ? Theme.accentBlueBg : (listModeHov.hovered ? Theme.surfaceCardHover : "transparent")
-                                    border.color: root.currentViewMode === "list" ? Theme.accentBlue : "transparent"
+                                    color: root.currentViewMode === "list" ? (Theme.isDark ? "#1E2A3F" : "#FFFFFF") : (listModeHov.hovered ? Theme.surfaceCardHover : "transparent")
+                                    border.color: root.currentViewMode === "list" ? Theme.borderDefault : "transparent"
                                     border.width: 1
 
                                     RowLayout {
@@ -1389,13 +1395,13 @@ ApplicationWindow {
                                         Components.LucideIcon {
                                             name: "layout-grid"
                                             size: 12
-                                            color: root.currentViewMode === "list" ? Theme.accentBlue : Theme.textMuted
+                                            color: root.currentViewMode === "list" ? Theme.textPrimary : Theme.textMuted
                                         }
                                         Text {
                                             text: "List"
                                             font.pixelSize: 11
                                             font.bold: root.currentViewMode === "list"
-                                            color: root.currentViewMode === "list" ? Theme.accentBlue : Theme.textSecondary
+                                            color: root.currentViewMode === "list" ? Theme.textPrimary : Theme.textSecondary
                                         }
                                     }
 
@@ -1410,8 +1416,8 @@ ApplicationWindow {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
                                     radius: 6
-                                    color: root.currentViewMode === "kanban" ? Theme.accentBlueBg : (boardModeHov.hovered ? Theme.surfaceCardHover : "transparent")
-                                    border.color: root.currentViewMode === "kanban" ? Theme.accentBlue : "transparent"
+                                    color: root.currentViewMode === "kanban" ? (Theme.isDark ? "#1E2A3F" : "#FFFFFF") : (boardModeHov.hovered ? Theme.surfaceCardHover : "transparent")
+                                    border.color: root.currentViewMode === "kanban" ? Theme.borderDefault : "transparent"
                                     border.width: 1
 
                                     RowLayout {
@@ -1420,13 +1426,13 @@ ApplicationWindow {
                                         Components.LucideIcon {
                                             name: "kanban"
                                             size: 12
-                                            color: root.currentViewMode === "kanban" ? Theme.accentBlue : Theme.textMuted
+                                            color: root.currentViewMode === "kanban" ? Theme.textPrimary : Theme.textMuted
                                         }
                                         Text {
                                             text: "Board"
                                             font.pixelSize: 11
                                             font.bold: root.currentViewMode === "kanban"
-                                            color: root.currentViewMode === "kanban" ? Theme.accentBlue : Theme.textSecondary
+                                            color: root.currentViewMode === "kanban" ? Theme.textPrimary : Theme.textSecondary
                                         }
                                     }
 

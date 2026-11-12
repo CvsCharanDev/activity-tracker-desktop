@@ -38,18 +38,10 @@ Rectangle {
 
     height: 76
     radius: 10
-    color: card.done 
-           ? (Theme.isDark ? "#0E1C14" : "#F0FDF4")
-           : (card.activeStatus === "In Progress"
-              ? (cardHover.hovered ? (Theme.isDark ? "#172338" : "#EFF6FF") : (Theme.isDark ? "#131B2A" : "#F8FAFC"))
-              : (cardHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard))
-
-    border.color: card.done 
-                  ? Theme.accentGreenBorder
-                  : (card.activeStatus === "In Progress"
-                     ? (cardHover.hovered ? Theme.accentBlue : (Theme.isDark ? "#1E3A5F" : "#BFDBFE"))
-                     : (cardHover.hovered ? Theme.accentBlue : Theme.borderDefault))
+    color: cardHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard
+    border.color: cardHover.hovered ? (card.done ? Theme.accentGreen : Theme.accentBlue) : Theme.borderDefault
     border.width: 1
+    opacity: card.done ? 0.78 : 1.0
 
     // ── Smooth Hover Lift (Using transform so ListView item.y coordinate is NOT corrupted) ─
     transform: Translate {
@@ -151,7 +143,7 @@ Rectangle {
             Layout.alignment: Qt.AlignVCenter
             checked: card.done
             accentColor: Theme.accentGreen
-            toolTipText: card.done ? "Click to Reopen Task" : "Mark as Completed"
+            toolTipText: card.done ? "Reopen" : "Complete"
 
             onClicked: {
                 if (card.done) {
@@ -215,8 +207,8 @@ Rectangle {
                     }
 
                     ToolTip.visible: extBadgeHover.hovered
-                    ToolTip.text: "Activity duration extended by " + (card.totalExtensions() * 15) + " minutes across " + card.totalExtensions() + " logged session(s)"
-                    ToolTip.delay: 300
+                    ToolTip.text: "+" + (card.totalExtensions() * 15) + "m extended"
+                    ToolTip.delay: 350
 
                     HoverHandler { id: extBadgeHover }
                 }
@@ -260,8 +252,8 @@ Rectangle {
                     }
 
                     ToolTip.visible: prioBadgeHover.hovered
-                    ToolTip.text: Theme.priorityCode(card.activePriority) + " - Click to edit"
-                    ToolTip.delay: 300
+                    ToolTip.text: Theme.priorityCode(card.activePriority) + " Priority"
+                    ToolTip.delay: 350
 
                     HoverHandler { id: prioBadgeHover; cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: card.editRequested() }
@@ -462,8 +454,8 @@ Rectangle {
                     TapHandler { onTapped: card.editRequested() }
 
                     ToolTip.visible: statusBadgeHover.hovered
-                    ToolTip.text: "Click to open activity details and operations"
-                    ToolTip.delay: 300
+                    ToolTip.text: card.activeStatus
+                    ToolTip.delay: 350
                 }
             }
         }
@@ -495,8 +487,8 @@ Rectangle {
                 }
 
                 ToolTip.visible: reopenHover.hovered
-                ToolTip.text: "Reopen Activity (to In Progress)"
-                ToolTip.delay: 300
+                ToolTip.text: "Reopen"
+                ToolTip.delay: 350
 
                 HoverHandler { id: reopenHover }
                 TapHandler {
@@ -541,8 +533,8 @@ Rectangle {
                 }
 
                 ToolTip.visible: extHover.hovered
-                ToolTip.text: "Extend Duration in-place (+15 min)"
-                ToolTip.delay: 300
+                ToolTip.text: "Add 15m"
+                ToolTip.delay: 350
 
                 HoverHandler { id: extHover }
                 TapHandler {
@@ -575,8 +567,8 @@ Rectangle {
                 }
 
                 ToolTip.visible: editHover.hovered
-                ToolTip.text: "Open Activity Details & Operations"
-                ToolTip.delay: 300
+                ToolTip.text: "Edit activity"
+                ToolTip.delay: 350
 
                 HoverHandler { id: editHover; cursorShape: Qt.PointingHandCursor }
                 TapHandler {
@@ -615,8 +607,8 @@ Rectangle {
                 }
 
                 ToolTip.visible: delHover.hovered
-                ToolTip.text: "Delete Activity"
-                ToolTip.delay: 300
+                ToolTip.text: "Delete"
+                ToolTip.delay: 350
 
                 HoverHandler { id: delHover }
                 TapHandler {

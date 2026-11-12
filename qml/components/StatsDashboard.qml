@@ -41,35 +41,24 @@ GridLayout {
         property bool   showProgressBar: false
         property real   progressRatio: 0.0 // 0.0 to 1.0
 
-        // Subtle left vertical accent indicator
-        Rectangle {
-            width: 4
-            height: cardRoot.height - 24
-            radius: 2
-            anchors.left: cardRoot.left
-            anchors.leftMargin: 8
-            anchors.verticalCenter: cardRoot.verticalCenter
-            color: accentColor
-        }
-
-        // Circular Icon Badge — pinned strictly to top-right corner for 100% alignment
+        // Rounded Icon Badge — pinned to top-right corner
         Rectangle {
             id: iconBadge
-            width: 36
-            height: 36
-            radius: 18
+            width: 32
+            height: 32
+            radius: 8
             anchors.top: parent.top
             anchors.topMargin: 12
             anchors.right: parent.right
             anchors.rightMargin: 14
-            color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, Theme.isDark ? 0.15 : 0.12)
-            border.color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, 0.3)
+            color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, Theme.isDark ? 0.12 : 0.08)
+            border.color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, Theme.isDark ? 0.25 : 0.2)
             border.width: 1
 
             LucideIcon {
                 anchors.centerIn: parent
                 name: cardRoot.iconName
-                size: 18
+                size: 16
                 color: cardRoot.accentColor
             }
         }
@@ -77,7 +66,7 @@ GridLayout {
         // Title and Primary Value
         Column {
             anchors.left: parent.left
-            anchors.leftMargin: 20
+            anchors.leftMargin: 16
             anchors.right: iconBadge.left
             anchors.rightMargin: 10
             anchors.top: parent.top
@@ -103,7 +92,7 @@ GridLayout {
         // Bottom Row: Subtitle on left, contextual status badge or labeled progress on right
         RowLayout {
             anchors.left: parent.left
-            anchors.leftMargin: 20
+            anchors.leftMargin: 16
             anchors.right: parent.right
             anchors.rightMargin: 14
             anchors.bottom: parent.bottom

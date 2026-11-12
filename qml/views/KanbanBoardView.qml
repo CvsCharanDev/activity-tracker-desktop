@@ -55,9 +55,7 @@ Item {
             Layout.fillHeight: true
             columnTitle: "Todo / Backlog"
             columnStatus: "Created"
-            statusColor: Theme.textSecondary
-            statusBgColor: Theme.surfaceBadge
-            statusBorderColor: Theme.borderDefault
+            statusColor: Theme.textMuted
             iconName: "list-todo"
             canAdd: true
         }
@@ -70,8 +68,6 @@ Item {
             columnTitle: "In Progress"
             columnStatus: "In Progress"
             statusColor: Theme.accentBlue
-            statusBgColor: Theme.accentBlueBg
-            statusBorderColor: Theme.accentBlueBorder
             iconName: "zap"
         }
 
@@ -83,8 +79,6 @@ Item {
             columnTitle: "Completed"
             columnStatus: "Done"
             statusColor: Theme.accentGreen
-            statusBgColor: Theme.accentGreenBg
-            statusBorderColor: Theme.accentGreenBorder
             iconName: "check"
         }
     }
@@ -213,13 +207,11 @@ Item {
         required property string columnTitle
         required property string columnStatus
         required property color  statusColor
-        required property color  statusBgColor
-        required property color  statusBorderColor
         required property string iconName
         property bool canAdd: false
 
-        radius: 14
-        color: colDropArea.containsDrag ? Theme.surfaceCardHover : Theme.surfaceSidebar
+        radius: 12
+        color: colDropArea.containsDrag ? Theme.surfaceCardHover : (Theme.isDark ? "#0E1420" : "#F8FAFC")
         border.color: colDropArea.containsDrag ? statusColor : Theme.borderDefault
         border.width: colDropArea.containsDrag ? 2 : 1
 
@@ -286,9 +278,9 @@ Item {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 38
-                radius: 10
-                color: colRoot.statusBgColor
-                border.color: colRoot.statusBorderColor
+                radius: 8
+                color: Theme.surfaceCard
+                border.color: Theme.borderDefault
                 border.width: 1
 
                 RowLayout {
@@ -299,9 +291,10 @@ Item {
                     }
                     spacing: 8
 
-                    Components.LucideIcon {
-                        name: colRoot.iconName
-                        size: 14
+                    Rectangle {
+                        implicitWidth: 8
+                        implicitHeight: 8
+                        radius: 4
                         color: colRoot.statusColor
                     }
 
@@ -309,24 +302,27 @@ Item {
                         text: colRoot.columnTitle
                         font.pixelSize: 13
                         font.bold: true
-                        color: colRoot.statusColor
+                        color: Theme.textPrimary
                     }
 
                     Item { Layout.fillWidth: true }
 
                     // Count Badge
                     Rectangle {
-                        radius: 8
-                        implicitWidth: countText.implicitWidth + 12
+                        radius: 6
+                        implicitWidth: Math.max(22, countText.implicitWidth + 12)
                         implicitHeight: 20
-                        color: Qt.rgba(colRoot.statusColor.r, colRoot.statusColor.g, colRoot.statusColor.b, 0.2)
+                        color: Theme.surfaceBadge
+                        border.color: Theme.borderDefault
+                        border.width: 1
+
                         Text {
                             id: countText
                             anchors.centerIn: parent
                             text: colRoot.visibleCount.toString()
                             font.pixelSize: 11
                             font.bold: true
-                            color: colRoot.statusColor
+                            color: Theme.textSecondary
                         }
                     }
 
@@ -344,12 +340,12 @@ Item {
                             anchors.centerIn: parent
                             name: "plus"
                             size: 13
-                            color: colRoot.statusColor
+                            color: addBtnHov.hovered ? Theme.textPrimary : Theme.textMuted
                         }
 
                         ToolTip.visible: addBtnHov.hovered
-                        ToolTip.text: "Add task to Backlog"
-                        ToolTip.delay: 250
+                        ToolTip.text: "Add task"
+                        ToolTip.delay: 350
 
                         HoverHandler { id: addBtnHov; cursorShape: Qt.PointingHandCursor }
                         MouseArea {
@@ -422,10 +418,10 @@ Item {
                         width: parent.width
                         height: 96
                         radius: 10
-                        color: done ? Theme.accentGreenBg : (kHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard)
-                        border.color: done ? Theme.accentGreenBorder : (kHover.hovered ? Theme.accentBlue : Theme.borderDefault)
+                        color: kHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard
+                        border.color: kHover.hovered ? (done ? Theme.accentGreen : Theme.accentBlue) : Theme.borderDefault
                         border.width: 1
-                        opacity: (dragProxy.visible && dragProxy.currentItemRoot === cardItemRoot) ? 0.35 : 1.0
+                        opacity: (dragProxy.visible && dragProxy.currentItemRoot === cardItemRoot) ? 0.35 : (done ? 0.78 : 1.0)
 
                         HoverHandler { id: kHover }
 
@@ -486,9 +482,9 @@ Item {
                                     elide: Text.ElideRight
                                     font.strikeout: done
 
-                                    ToolTip.visible: titleHov.hovered
-                                    ToolTip.text: "Click or double-click to edit details"
-                                    ToolTip.delay: 300
+                                    ToolTip.visible: titleHov.hovered && truncated
+                                    ToolTip.text: text
+                                    ToolTip.delay: 400
 
                                     HoverHandler { id: titleHov; cursorShape: Qt.PointingHandCursor }
                                     MouseArea {
@@ -529,8 +525,8 @@ Item {
                                     }
 
                                     ToolTip.visible: prioCardHover.hovered
-                                    ToolTip.text: Theme.priorityCode(priority) + " (" + (priority || "Medium") + ")"
-                                    ToolTip.delay: 250
+                                    ToolTip.text: Theme.priorityCode(priority) + " Priority"
+                                    ToolTip.delay: 350
                                     HoverHandler { id: prioCardHover }
                                 }
 
@@ -658,8 +654,8 @@ Item {
                                     }
 
                                     ToolTip.visible: editBtnHov.hovered
-                                    ToolTip.text: "Edit task details"
-                                    ToolTip.delay: 250
+                                    ToolTip.text: "Edit task"
+                                    ToolTip.delay: 350
 
                                     HoverHandler { id: editBtnHov; cursorShape: Qt.PointingHandCursor }
                                     MouseArea {
