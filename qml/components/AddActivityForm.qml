@@ -306,7 +306,7 @@ ColumnLayout {
             }
             Item { Layout.fillWidth: true }
             Text {
-                text: formRoot.selectedPriority
+                text: Theme.priorityCode(formRoot.selectedPriority)
                 color: formRoot.selectedPriority === "Urgent" ? Theme.accentRed :
                        (formRoot.selectedPriority === "High" ? Theme.accentAmber :
                        (formRoot.selectedPriority === "Medium" ? Theme.accentBlue : Theme.textMuted))
@@ -350,12 +350,16 @@ ColumnLayout {
                         }
 
                         Text {
-                            text: modelData
+                            text: Theme.priorityCode(modelData)
                             font.pixelSize: 11
                             font.bold: prioPill.isSelected
                             color: prioPill.isSelected ? Theme.priorityColor(modelData) : Theme.textSecondary
                         }
                     }
+
+                    ToolTip.visible: prioHover.hovered
+                    ToolTip.text: Theme.priorityCode(modelData) + " (" + modelData + ")"
+                    ToolTip.delay: 250
 
                     HoverHandler { id: prioHover; cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: formRoot.selectedPriority = modelData }

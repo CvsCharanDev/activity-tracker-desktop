@@ -15,6 +15,7 @@ Item {
     property string filterTimeframe: "All Time"
 
     signal editRequested(int index)
+    signal addRequested()
 
     // Reactive model mutation version counter — forces recalculation when activities update
     property int modelVersion: 0
@@ -58,6 +59,7 @@ Item {
             statusBgColor: Theme.surfaceBadge
             statusBorderColor: Theme.borderDefault
             iconName: "list-todo"
+            canAdd: true
         }
 
         // ── Column 2: IN PROGRESS ─────────────────────────────────────────────
@@ -138,18 +140,28 @@ Item {
 
                 Rectangle {
                     radius: 4
-                    implicitWidth: 16
+                    implicitWidth: dragPrioTxt.implicitWidth + 12
                     implicitHeight: 18
                     color: Theme.priorityBg(dragProxy.priorityText)
                     border.color: Theme.priorityBorder(dragProxy.priorityText)
                     border.width: 1
 
-                    Rectangle {
+                    RowLayout {
                         anchors.centerIn: parent
-                        implicitWidth: 6
-                        implicitHeight: 6
-                        radius: 3
-                        color: Theme.priorityColor(dragProxy.priorityText)
+                        spacing: 3
+                        Rectangle {
+                            implicitWidth: 5
+                            implicitHeight: 5
+                            radius: 2.5
+                            color: Theme.priorityColor(dragProxy.priorityText)
+                        }
+                        Text {
+                            id: dragPrioTxt
+                            text: Theme.priorityCode(dragProxy.priorityText)
+                            font.pixelSize: 9
+                            font.bold: true
+                            color: Theme.priorityColor(dragProxy.priorityText)
+                        }
                     }
                 }
 
@@ -204,6 +216,7 @@ Item {
         required property color  statusBgColor
         required property color  statusBorderColor
         required property string iconName
+        property bool canAdd: false
 
         radius: 14
         color: colDropArea.containsDrag ? Theme.surfaceCardHover : Theme.surfaceSidebar
@@ -314,6 +327,35 @@ Item {
                             font.pixelSize: 11
                             font.bold: true
                             color: colRoot.statusColor
+                        }
+                    }
+
+                    // Quick Add Button in Todo / Backlog Header
+                    Rectangle {
+                        visible: colRoot.canAdd
+                        implicitWidth: 22
+                        implicitHeight: 22
+                        radius: 6
+                        color: addBtnHov.hovered ? Theme.surfaceCardHover : "transparent"
+                        border.color: addBtnHov.hovered ? Theme.borderDefault : "transparent"
+                        border.width: 1
+
+                        Components.LucideIcon {
+                            anchors.centerIn: parent
+                            name: "plus"
+                            size: 13
+                            color: colRoot.statusColor
+                        }
+
+                        ToolTip.visible: addBtnHov.hovered
+                        ToolTip.text: "Add task to Backlog"
+                        ToolTip.delay: 250
+
+                        HoverHandler { id: addBtnHov; cursorShape: Qt.PointingHandCursor }
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: kanbanRoot.addRequested()
                         }
                     }
                 }
@@ -457,25 +499,37 @@ Item {
                                     }
                                 }
 
-                                // Priority Indicator Dot
+                                // Priority Code Badge (P0, P1, P2, P3)
                                 Rectangle {
                                     radius: 4
-                                    implicitWidth: 16
+                                    implicitWidth: prioCardTxt.implicitWidth + 12
                                     implicitHeight: 18
                                     color: Theme.priorityBg(priority)
                                     border.color: Theme.priorityBorder(priority)
                                     border.width: 1
 
-                                    Rectangle {
+                                    RowLayout {
                                         anchors.centerIn: parent
-                                        implicitWidth: 6
-                                        implicitHeight: 6
-                                        radius: 3
-                                        color: Theme.priorityColor(priority)
+                                        spacing: 3
+
+                                        Rectangle {
+                                            implicitWidth: 5
+                                            implicitHeight: 5
+                                            radius: 2.5
+                                            color: Theme.priorityColor(priority)
+                                        }
+
+                                        Text {
+                                            id: prioCardTxt
+                                            text: Theme.priorityCode(priority)
+                                            font.pixelSize: 9
+                                            font.bold: true
+                                            color: Theme.priorityColor(priority)
+                                        }
                                     }
 
                                     ToolTip.visible: prioCardHover.hovered
-                                    ToolTip.text: "Priority: " + (priority || "Medium")
+                                    ToolTip.text: Theme.priorityCode(priority) + " (" + (priority || "Medium") + ")"
                                     ToolTip.delay: 250
                                     HoverHandler { id: prioCardHover }
                                 }
@@ -629,39 +683,32 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: 4
-                    radius: 12
-                    color: Theme.isDark ? "#080D1A" : "#F8FAFC"
-                    border.color: Theme.borderSubtle
-                    border.width: 1
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    spacing: 8
+                    opacity: 0.65
 
-                    ColumnLayout {
-                        anchors.centerIn: parent
-                        spacing: 8
+                    Components.LucideIcon {
+                        Layout.alignment: Qt.AlignHCenter
+                        name: colRoot.iconName
+                        size: 20
+                        color: Theme.textMuted
+                    }
 
-                        Components.LucideIcon {
-                            Layout.alignment: Qt.AlignHCenter
-                            name: colRoot.iconName
-                            size: 24
-                            color: Theme.textMuted
-                        }
+                    Text {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: colRoot.columnStatus === "Created" ? "No tasks in backlog" :
+                              (colRoot.columnStatus === "In Progress" ? "No active tasks" : "No completed tasks")
+                        font.pixelSize: 12
+                        font.bold: true
+                        color: Theme.textSecondary
+                    }
 
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "No activities in " + colRoot.columnTitle
-                            font.pixelSize: 12
-                            font.bold: true
-                            color: Theme.textSecondary
-                        }
-
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "Drop activities here or change filters"
-                            font.pixelSize: 10
-                            color: Theme.textMuted
-                        }
+                    Text {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: colRoot.columnStatus === "Created" ? "Click + to add a task" : "Drag tasks here to change status"
+                        font.pixelSize: 11
+                        color: Theme.textMuted
                     }
                 }
             }

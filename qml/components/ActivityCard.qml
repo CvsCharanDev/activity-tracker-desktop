@@ -252,7 +252,7 @@ Rectangle {
                         }
 
                         Text {
-                            text: card.activePriority
+                            text: Theme.priorityCode(card.activePriority)
                             font.pixelSize: 10
                             font.bold: true
                             color: card.priorityColor(card.activePriority)
@@ -260,7 +260,7 @@ Rectangle {
                     }
 
                     ToolTip.visible: prioBadgeHover.hovered
-                    ToolTip.text: "Priority: " + card.activePriority + " (Click to edit details)"
+                    ToolTip.text: Theme.priorityCode(card.activePriority) + " - Click to edit"
                     ToolTip.delay: 300
 
                     HoverHandler { id: prioBadgeHover; cursorShape: Qt.PointingHandCursor }

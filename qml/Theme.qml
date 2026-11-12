@@ -55,30 +55,39 @@ QtObject {
     readonly property color accentRedBg:      isDark ? "#321217" : "#FEF2F2"
     readonly property color accentRedBorder:  isDark ? "#991B1B" : "#FECACA"
 
-    // ── Semantic Priority Matrix (Urgent P1, High P2, Medium P3, Low P4) ──────
+    // ── Semantic Priority Matrix (P0 Urgent, P1 High, P2 Medium, P3 Low) ─────
+    function priorityCode(p) {
+        switch(p) {
+        case "Urgent": case "P0": return "P0"
+        case "High":   case "P1": return "P1"
+        case "Low":    case "P3": case "P4": return "P3"
+        default:                  return "P2" // Medium / P2
+        }
+    }
+
     function priorityColor(p) {
         switch(p) {
-        case "Urgent": return isDark ? "#F87171" : "#DC2626"
-        case "High":   return isDark ? "#FB923C" : "#EA580C"
-        case "Low":    return isDark ? "#94A3B8" : "#64748B"
-        default:       return isDark ? "#38BDF8" : "#0284C7" // Medium
+        case "Urgent": case "P0": return isDark ? "#F87171" : "#DC2626"
+        case "High":   case "P1": return isDark ? "#FB923C" : "#EA580C"
+        case "Low":    case "P3": case "P4": return isDark ? "#94A3B8" : "#64748B"
+        default:                  return isDark ? "#38BDF8" : "#0284C7" // Medium / P2
         }
     }
 
     function priorityBg(p) {
         if (isDark) {
             switch(p) {
-            case "Urgent": return "#321217"
-            case "High":   return "#2C1708"
-            case "Low":    return "#1E293B"
-            default:       return "#0C2340"
+            case "Urgent": case "P0": return "#321217"
+            case "High":   case "P1": return "#2C1708"
+            case "Low":    case "P3": case "P4": return "#1E293B"
+            default:                  return "#0C2340"
             }
         } else {
             switch(p) {
-            case "Urgent": return "#FEF2F2"
-            case "High":   return "#FFF7ED"
-            case "Low":    return "#F1F5F9"
-            default:       return "#F0F9FF"
+            case "Urgent": case "P0": return "#FEF2F2"
+            case "High":   case "P1": return "#FFF7ED"
+            case "Low":    case "P3": case "P4": return "#F1F5F9"
+            default:                  return "#F0F9FF"
             }
         }
     }
@@ -86,17 +95,17 @@ QtObject {
     function priorityBorder(p) {
         if (isDark) {
             switch(p) {
-            case "Urgent": return "#991B1B"
-            case "High":   return "#9A3412"
-            case "Low":    return "#334155"
-            default:       return "#0369A1"
+            case "Urgent": case "P0": return "#991B1B"
+            case "High":   case "P1": return "#9A3412"
+            case "Low":    case "P3": case "P4": return "#334155"
+            default:                  return "#0369A1"
             }
         } else {
             switch(p) {
-            case "Urgent": return "#FECACA"
-            case "High":   return "#FED7AA"
-            case "Low":    return "#CBD5E1"
-            default:       return "#BAE6FD"
+            case "Urgent": case "P0": return "#FECACA"
+            case "High":   case "P1": return "#FED7AA"
+            case "Low":    case "P3": case "P4": return "#CBD5E1"
+            default:                  return "#BAE6FD"
             }
         }
     }

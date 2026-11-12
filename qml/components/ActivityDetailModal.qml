@@ -280,10 +280,10 @@ Dialog {
 
                         Repeater {
                             model: [
-                                { name: "Urgent", label: "Urgent (P1)" },
-                                { name: "High",   label: "High (P2)" },
-                                { name: "Medium", label: "Medium (P3)" },
-                                { name: "Low",    label: "Low (P4)" }
+                                { name: "Urgent", label: "P0", desc: "P0 - Urgent blocker" },
+                                { name: "High",   label: "P1", desc: "P1 - High priority" },
+                                { name: "Medium", label: "P2", desc: "P2 - Medium normal" },
+                                { name: "Low",    label: "P3", desc: "P3 - Low priority" }
                             ]
 
                             delegate: Rectangle {
@@ -301,11 +301,16 @@ Dialog {
                                     Rectangle { implicitWidth: 6; implicitHeight: 6; radius: 3; color: Theme.priorityColor(modelData.name) }
                                     Text {
                                         text: modelData.label
-                                        font.pixelSize: 11
+                                        font.pixelSize: 12
                                         font.bold: true
                                         color: isSelected ? Theme.priorityColor(modelData.name) : Theme.textSecondary
                                     }
                                 }
+
+                                ToolTip.visible: prioHov.hovered
+                                ToolTip.text: modelData.desc
+                                ToolTip.delay: 250
+
                                 HoverHandler { id: prioHov; cursorShape: Qt.PointingHandCursor }
                                 TapHandler { onTapped: detailModal.currentPriority = modelData.name }
                             }

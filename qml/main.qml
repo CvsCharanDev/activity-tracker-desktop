@@ -1297,19 +1297,11 @@ ApplicationWindow {
                                     implicitWidth: 6
                                     implicitHeight: 6
                                     radius: 3
-                                    color: {
-                                        switch (root.activePriorityFilter) {
-                                        case "Urgent": return "#EF4444";
-                                        case "High":   return "#F97316";
-                                        case "Medium": return "#3B82F6";
-                                        case "Low":    return "#94A3B8";
-                                        default:       return Theme.textSecondary;
-                                        }
-                                    }
+                                    color: root.activePriorityFilter === "All" ? Theme.textSecondary : Theme.priorityColor(root.activePriorityFilter)
                                 }
 
                                 Text {
-                                    text: root.activePriorityFilter === "All" ? "Priority: All" : ("Priority: " + root.activePriorityFilter)
+                                    text: root.activePriorityFilter === "All" ? "All" : Theme.priorityCode(root.activePriorityFilter)
                                     font.pixelSize: 11
                                     font.bold: prioFilterBtn.isFiltered
                                     color: prioFilterBtn.isFiltered ? Theme.accentBlue : Theme.textSecondary
@@ -1323,7 +1315,7 @@ ApplicationWindow {
                             }
 
                             ToolTip.visible: prioFilterHover.hovered
-                            ToolTip.text: "Filter activities by priority"
+                            ToolTip.text: "Filter by Priority (P0, P1, P2, P3)"
                             ToolTip.delay: 300
 
                             HoverHandler { id: prioFilterHover; cursorShape: Qt.PointingHandCursor }
@@ -1334,31 +1326,31 @@ ApplicationWindow {
                                 y: prioFilterBtn.height + 4
 
                                 Action {
-                                    text: "All Priorities"
+                                    text: "All"
                                     checkable: true
                                     checked: root.activePriorityFilter === "All"
                                     onTriggered: root.activePriorityFilter = "All"
                                 }
                                 Action {
-                                    text: "Urgent (P1)"
+                                    text: "P0 (Urgent)"
                                     checkable: true
                                     checked: root.activePriorityFilter === "Urgent"
                                     onTriggered: root.activePriorityFilter = "Urgent"
                                 }
                                 Action {
-                                    text: "High (P2)"
+                                    text: "P1 (High)"
                                     checkable: true
                                     checked: root.activePriorityFilter === "High"
                                     onTriggered: root.activePriorityFilter = "High"
                                 }
                                 Action {
-                                    text: "Medium (P3)"
+                                    text: "P2 (Medium)"
                                     checkable: true
                                     checked: root.activePriorityFilter === "Medium"
                                     onTriggered: root.activePriorityFilter = "Medium"
                                 }
                                 Action {
-                                    text: "Low (P4)"
+                                    text: "P3 (Low)"
                                     checkable: true
                                     checked: root.activePriorityFilter === "Low"
                                     onTriggered: root.activePriorityFilter = "Low"
@@ -1546,6 +1538,14 @@ ApplicationWindow {
                             onEditRequested: function(index) {
                                 activityDetailModal.openForActivity(index)
                             }
+                            onAddRequested: {
+                                if (root.sidebarCollapsed) {
+                                    root.sidebarCollapsed = false
+                                }
+                                if (addActivityForm) {
+                                    addActivityForm.focusNameField()
+                                }
+                            }
                         }
 
                         Views.KanbanBoardView {
@@ -1558,6 +1558,14 @@ ApplicationWindow {
                             visible: root.currentViewMode === "kanban" && activityModel.count > 0
                             onEditRequested: function(index) {
                                 activityDetailModal.openForActivity(index)
+                            }
+                            onAddRequested: {
+                                if (root.sidebarCollapsed) {
+                                    root.sidebarCollapsed = false
+                                }
+                                if (addActivityForm) {
+                                    addActivityForm.focusNameField()
+                                }
                             }
                         }
 
