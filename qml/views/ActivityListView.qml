@@ -239,6 +239,7 @@ ListView {
                 TapHandler {
                     onTapped: {
                         root.activeCategoryFilter = "All";
+                        root.activeStatusFilter = "All";
                         root.activePriorityFilter = "All";
                         root.activeSearchQuery = "";
                     }

@@ -89,13 +89,13 @@ Rectangle {
         }
     }
 
-    // Helper: Formats duration in both hours and minutes
-    function formatDurationBoth(mins) {
-        if (!mins || mins <= 0) return "0 min"
-        if (mins < 60) return mins + " min"
+    // Helper: Formats duration in clean standard format (e.g. 45m or 1h 30m)
+    function formatDurationClean(mins) {
+        if (!mins || mins <= 0) return "0m"
+        if (mins < 60) return mins + "m"
         const h = Math.floor(mins / 60)
         const m = mins % 60
-        return m > 0 ? (h + "h " + m + "m (" + mins + "m)") : (h + "h (" + mins + "m)")
+        return m > 0 ? (h + "h " + m + "m") : (h + "h")
     }
 
     // Helper: Clean display name (removes ugly legacy "(Extension)" text strings)
@@ -116,30 +116,10 @@ Rectangle {
     function priorityBg(prio) { return Theme.priorityBg(prio) }
     function priorityBorder(prio) { return Theme.priorityBorder(prio) }
 
-    // Left accent category strip
-    Rectangle {
-        id: accentStrip
-        width: 4
-        height: card.height - 20
-        radius: 2
-        anchors.left: card.left
-        anchors.leftMargin: 8
-        anchors.verticalCenter: card.verticalCenter
-        color: {
-            if (card.done) return Theme.accentGreen;
-            switch (card.category) {
-            case "Work":     return Theme.accentBlue;
-            case "Learning": return Theme.accentAmber;
-            case "Personal": return Theme.accentGreen;
-            default:         return Theme.textSecondary;
-            }
-        }
-    }
-
     RowLayout {
         anchors {
             fill: parent
-            leftMargin: 20
+            leftMargin: 16
             rightMargin: 16
             topMargin: 8
             bottomMargin: 8
@@ -169,70 +149,30 @@ Rectangle {
             Layout.alignment: Qt.AlignVCenter
             spacing: 6
 
-            // Activity Name + Extension / Iteration Badge
-            RowLayout {
+            // Activity Name
+            Text {
                 Layout.fillWidth: true
-                spacing: 8
+                text: card.cleanDisplayName(card.name)
+                color: titleHover.hovered ? Theme.accentBlue : (card.done ? Theme.textMuted : Theme.textPrimary)
+                font.pixelSize: 13
+                font.bold: true
+                elide: Text.ElideRight
+                font.strikeout: card.done
 
-                Text {
-                    Layout.fillWidth: true
-                    text: card.cleanDisplayName(card.name)
-                    color: titleHover.hovered ? Theme.accentBlue : (card.done ? Theme.textMuted : Theme.textPrimary)
-                    font.pixelSize: 14
-                    font.bold: true
-                    elide: Text.ElideRight
-                    font.strikeout: card.done
-
-                    HoverHandler { id: titleHover; cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: card.editRequested() }
-                }
-
-                // Executive Extension / Iteration Badge (shown if extended)
-                Rectangle {
-                    visible: card.totalExtensions() > 0
-                    radius: 6
-                    implicitWidth: extLabel.implicitWidth + 14
-                    implicitHeight: 20
-                    color: Theme.accentPurpleBg
-                    border.color: Theme.accentPurpleBorder
-                    border.width: 1
-
-                    RowLayout {
-                        id: extLabel
-                        anchors.centerIn: parent
-                        spacing: 4
-
-                        LucideIcon {
-                            name: "zap"
-                            size: 10
-                            color: Theme.accentPurple
-                        }
-                        Text {
-                            text: "Ext +" + (card.totalExtensions() * 15) + "m (" + card.totalExtensions() + ")"
-                            font.pixelSize: 10
-                            font.bold: true
-                            color: Theme.accentPurple
-                        }
-                    }
-
-                    ToolTip.visible: extBadgeHover.hovered
-                    ToolTip.text: "+" + (card.totalExtensions() * 15) + "m extended"
-                    ToolTip.delay: 350
-
-                    HoverHandler { id: extBadgeHover }
-                }
+                HoverHandler { id: titleHover; cursorShape: Qt.PointingHandCursor }
+                TapHandler { onTapped: card.editRequested() }
             }
 
-            // Badges row: Priority pill + Category pill + Duration pill + Status pill
+            // Badges row: Priority pill + Category pill + Duration & Extra Time + Status + Timestamp
             RowLayout {
-                spacing: 8
+                spacing: 6
 
-                // Priority Pill (Urgent, High, Medium, Low)
+                // Priority Pill (P0, P1, P2, P3)
                 Rectangle {
                     id: prioBadge
                     radius: 6
-                    implicitWidth: prioRow.implicitWidth + 14
-                    implicitHeight: 22
+                    implicitWidth: prioRow.implicitWidth + 12
+                    implicitHeight: 20
                     color: card.priorityBg(card.activePriority)
                     border.color: prioBadgeHover.hovered ? card.priorityColor(card.activePriority) : card.priorityBorder(card.activePriority)
                     border.width: 1
@@ -246,15 +186,15 @@ Rectangle {
                         spacing: 4
 
                         Rectangle {
-                            implicitWidth: 6
-                            implicitHeight: 6
-                            radius: 3
+                            implicitWidth: 5
+                            implicitHeight: 5
+                            radius: 2.5
                             color: card.priorityColor(card.activePriority)
                         }
 
                         Text {
                             text: Theme.priorityCode(card.activePriority)
-                            font.pixelSize: 10
+                            font.pixelSize: 9
                             font.bold: true
                             color: card.priorityColor(card.activePriority)
                         }
@@ -271,8 +211,8 @@ Rectangle {
                 // Category pill
                 Rectangle {
                     radius: 6
-                    implicitWidth: catRow.implicitWidth + 16
-                    implicitHeight: 22
+                    implicitWidth: catRow.implicitWidth + 14
+                    implicitHeight: 20
                     color: {
                         if (card.done) return Theme.accentGreenBg;
                         switch (card.category) {
@@ -296,7 +236,7 @@ Rectangle {
                     Row {
                         id: catRow
                         anchors.centerIn: parent
-                        spacing: 5
+                        spacing: 4
 
                         LucideIcon {
                             anchors.verticalCenter: parent.verticalCenter
@@ -308,7 +248,7 @@ Rectangle {
                                 default:         return "list-todo";
                                 }
                             }
-                            size: 12
+                            size: 11
                             color: {
                                 if (card.done) return Theme.accentGreen;
                                 switch (card.category) {
@@ -323,7 +263,7 @@ Rectangle {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: card.category && card.category.length > 0 ? card.category : "General"
-                            font.pixelSize: 11
+                            font.pixelSize: 10
                             font.bold: true
                             color: {
                                 if (card.done) return Theme.accentGreen;
@@ -338,11 +278,11 @@ Rectangle {
                     }
                 }
 
-                // Duration pill
+                // Duration pill (Clean, standard duration format)
                 Rectangle {
-                    radius: 10
-                    implicitWidth: durRow.implicitWidth + 14
-                    implicitHeight: 22
+                    radius: 6
+                    implicitWidth: durRow.implicitWidth + 12
+                    implicitHeight: 20
                     color: Theme.surfaceBadge
                     border.color: Theme.borderDefault
                     border.width: 1
@@ -355,124 +295,115 @@ Rectangle {
                         LucideIcon {
                             anchors.verticalCenter: parent.verticalCenter
                             name: "clock"
-                            size: 12
-                            color: Theme.textSecondary
-                        }
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: card.formatDurationBoth(card.durationMinutes)
-                            font.pixelSize: 11
-                            color: Theme.textSecondary
-                            font.bold: true
-                        }
-                    }
-                }
-
-                // History Date Pill (shows exact historical timeframe: Today, Yesterday, Oct 24)
-                Rectangle {
-                    radius: 10
-                    implicitWidth: historyRow.implicitWidth + 14
-                    implicitHeight: 22
-                    color: Theme.surfaceBadge
-                    border.color: Theme.borderDefault
-                    border.width: 1
-
-                    Row {
-                        id: historyRow
-                        anchors.centerIn: parent
-                        spacing: 4
-
-                        LucideIcon {
-                            anchors.verticalCenter: parent.verticalCenter
-                            name: "clock"
-                            size: 10
-                            color: Theme.textMuted
-                        }
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: card.formatHistoryDate(card.createdAt)
-                            font.pixelSize: 10
-                            color: Theme.textMuted
-                            font.bold: false
-                        }
-                    }
-                }
-
-                // Status pill (Interactive Lifecycle Badge: Todo / In Progress / Done)
-                Rectangle {
-                    id: statusBadge
-                    radius: 6
-                    implicitWidth: statusRow.implicitWidth + 16
-                    implicitHeight: 22
-                    color: {
-                        if (card.done || card.activeStatus === "Done") return Theme.accentGreenBg;
-                        if (card.activeStatus === "In Progress") return Theme.accentBlueBg;
-                        return Theme.surfaceBadge;
-                    }
-                    border.color: {
-                        if (card.done || card.activeStatus === "Done") return Theme.accentGreenBorder;
-                        if (card.activeStatus === "In Progress") return Theme.accentBlueBorder;
-                        return Theme.borderDefault;
-                    }
-                    border.width: 1
-
-                    scale: statusBadgeHover.hovered ? 1.05 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 120 } }
-                    Behavior on color { ColorAnimation { duration: 150 } }
-
-                    Row {
-                        id: statusRow
-                        anchors.centerIn: parent
-                        spacing: 4
-
-                        LucideIcon {
-                            anchors.verticalCenter: parent.verticalCenter
-                            name: {
-                                if (card.done || card.activeStatus === "Done") return "check";
-                                if (card.activeStatus === "In Progress") return "zap";
-                                return "list-todo";
-                            }
                             size: 11
-                            color: {
-                                if (card.done || card.activeStatus === "Done") return Theme.accentGreen;
-                                if (card.activeStatus === "In Progress") return Theme.accentBlue;
-                                return Theme.textSecondary;
-                            }
+                            color: Theme.textSecondary
                         }
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: {
-                                if (card.done || card.activeStatus === "Done") return "Done";
-                                if (card.activeStatus === "In Progress") return "In Progress";
-                                return "Todo";
-                            }
+                            text: card.formatDurationClean(card.durationMinutes)
+                            font.pixelSize: 10
+                            color: Theme.textSecondary
+                            font.bold: true
+                        }
+                    }
+                }
+
+                // Extra Time / Extension Indicator (Directly grouped with duration!)
+                Rectangle {
+                    visible: card.totalExtensions() > 0
+                    radius: 6
+                    implicitWidth: extRow.implicitWidth + 12
+                    implicitHeight: 20
+                    color: Theme.accentPurpleBg
+                    border.color: Theme.accentPurpleBorder
+                    border.width: 1
+
+                    Row {
+                        id: extRow
+                        anchors.centerIn: parent
+                        spacing: 3
+
+                        LucideIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            name: "sparkles"
+                            size: 10
+                            color: Theme.accentPurple
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "+" + (card.totalExtensions() * 15) + "m extra"
                             font.pixelSize: 10
                             font.bold: true
-                            color: {
-                                if (card.done || card.activeStatus === "Done") return Theme.accentGreen;
-                                if (card.activeStatus === "In Progress") return Theme.accentBlue;
-                                return Theme.textSecondary;
-                            }
+                            color: Theme.accentPurple
                         }
                     }
 
-                    HoverHandler { id: statusBadgeHover; cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: card.editRequested() }
-
-                    ToolTip.visible: statusBadgeHover.hovered
-                    ToolTip.text: card.activeStatus
+                    ToolTip.visible: extBadgeHover.hovered
+                    ToolTip.text: "+" + (card.totalExtensions() * 15) + "m extra across " + card.totalExtensions() + " session" + (card.totalExtensions() > 1 ? "s" : "")
                     ToolTip.delay: 350
+                    HoverHandler { id: extBadgeHover }
+                }
+
+                // In-Progress Indicator (Only shown if actively in-progress)
+                Rectangle {
+                    visible: !card.done && card.activeStatus === "In Progress"
+                    radius: 6
+                    implicitWidth: inProgRow.implicitWidth + 12
+                    implicitHeight: 20
+                    color: Theme.accentBlueBg
+                    border.color: Theme.accentBlueBorder
+                    border.width: 1
+
+                    Row {
+                        id: inProgRow
+                        anchors.centerIn: parent
+                        spacing: 4
+
+                        LucideIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            name: "zap"
+                            size: 10
+                            color: Theme.accentBlue
+                        }
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "In Progress"
+                            font.pixelSize: 10
+                            font.bold: true
+                            color: Theme.accentBlue
+                        }
+                    }
+                }
+
+                // History Date / Timestamp (Clean, muted subtitle)
+                Row {
+                    spacing: 4
+                    LucideIcon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        name: "clock"
+                        size: 10
+                        color: Theme.textMuted
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: card.formatHistoryDate(card.createdAt)
+                        font.pixelSize: 10
+                        color: Theme.textMuted
+                        font.bold: false
+                    }
                 }
             }
         }
 
-        // ── Right Actions Deck (Reopen, +15m / Extension, Delete) ─────────────
+        // ── Right Actions Deck (Reopen, +15m, Edit, Delete) ───────────────────
         RowLayout {
             Layout.alignment: Qt.AlignVCenter
             spacing: 6
+            opacity: cardHover.hovered || card.done ? 1.0 : (Theme.isDark ? 0.35 : 0.45)
+            Behavior on opacity { NumberAnimation { duration: 150 } }
 
             // Reopen Action Button (Visible when completed)
             Rectangle {

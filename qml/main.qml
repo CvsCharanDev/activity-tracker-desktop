@@ -1172,7 +1172,7 @@ ApplicationWindow {
                                     readonly property bool isSelected: root.activeCategoryFilter === modelData
 
                                     color: isSelected 
-                                           ? (Theme.isDark ? "#1E2A3F" : "#FFFFFF") 
+                                           ? (Theme.isDark ? "#222226" : "#FFFFFF") 
                                            : (chipHover.hovered ? Theme.surfaceCardHover : "transparent")
                                     border.color: isSelected ? Theme.borderDefault : (chipHover.hovered ? Theme.borderSubtle : "transparent")
                                     border.width: 1
@@ -1371,7 +1371,7 @@ ApplicationWindow {
                             implicitHeight: 32
                             implicitWidth: 160
                             radius: 8
-                            color: Theme.isDark ? "#0E1420" : "#F1F5F9"
+                            color: Theme.isDark ? "#121215" : "#EAECEF"
                             border.color: Theme.borderDefault
                             border.width: 1
 
@@ -1385,7 +1385,7 @@ ApplicationWindow {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
                                     radius: 6
-                                    color: root.currentViewMode === "list" ? (Theme.isDark ? "#1E2A3F" : "#FFFFFF") : (listModeHov.hovered ? Theme.surfaceCardHover : "transparent")
+                                    color: root.currentViewMode === "list" ? (Theme.isDark ? "#222226" : "#FFFFFF") : (listModeHov.hovered ? Theme.surfaceCardHover : "transparent")
                                     border.color: root.currentViewMode === "list" ? Theme.borderDefault : "transparent"
                                     border.width: 1
 
@@ -1416,7 +1416,7 @@ ApplicationWindow {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
                                     radius: 6
-                                    color: root.currentViewMode === "kanban" ? (Theme.isDark ? "#1E2A3F" : "#FFFFFF") : (boardModeHov.hovered ? Theme.surfaceCardHover : "transparent")
+                                    color: root.currentViewMode === "kanban" ? (Theme.isDark ? "#222226" : "#FFFFFF") : (boardModeHov.hovered ? Theme.surfaceCardHover : "transparent")
                                     border.color: root.currentViewMode === "kanban" ? Theme.borderDefault : "transparent"
                                     border.width: 1
 
@@ -1449,9 +1449,9 @@ ApplicationWindow {
                             implicitWidth: 220
                             implicitHeight: 32
                             radius: 8
-                            color: searchInput.activeFocus ? (Theme.isDark ? "#121A28" : "#F8FAFC") : Theme.surfaceInput
-                            border.color: searchInput.activeFocus ? Theme.accentBlue : Theme.borderDefault
-                            border.width: searchInput.activeFocus ? 2 : 1
+                            color: searchInput.activeFocus ? (Theme.isDark ? "#18181B" : "#FFFFFF") : Theme.surfaceInput
+                            border.color: searchInput.activeFocus ? Theme.borderFocus : Theme.borderDefault
+                            border.width: 1
 
                             Behavior on color { ColorAnimation { duration: 150 } }
                             Behavior on border.color { ColorAnimation { duration: 150 } }
@@ -1637,8 +1637,8 @@ ApplicationWindow {
         height: 42
         implicitWidth: undoRow.implicitWidth + 36
         radius: 8
-        color: Theme.isDark ? "#1E293B" : "#0F172A"
-        border.color: Theme.accentBlue
+        color: Theme.isDark ? "#18181B" : "#0F172A"
+        border.color: Theme.borderDefault
         border.width: 1
         z: 99
 
@@ -1706,7 +1706,7 @@ ApplicationWindow {
                 implicitWidth: 22
                 implicitHeight: 22
                 radius: 11
-                color: closeUndoHover.hovered ? (Theme.isDark ? "#334155" : "#475569") : "transparent"
+                color: closeUndoHover.hovered ? (Theme.isDark ? "#27272A" : "#334155") : "transparent"
 
                 Components.LucideIcon {
                     anchors.centerIn: parent
@@ -1742,7 +1742,7 @@ ApplicationWindow {
         height: 38
         implicitWidth: refToastRow.implicitWidth + 24
         radius: 8
-        color: Theme.isDark ? "#14281E" : "#ECFDF5"
+        color: Theme.isDark ? "#18181B" : "#ECFDF5"
         border.color: Theme.accentGreenBorder
         border.width: 1
         z: 99

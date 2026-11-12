@@ -562,7 +562,7 @@ Item {
                                 Layout.fillWidth: true
                                 spacing: 6
 
-                                // Duration pill
+                                // Duration & Extra Time
                                 RowLayout {
                                     spacing: 4
                                     Components.LucideIcon { name: "clock"; size: 10; color: Theme.textMuted }
@@ -571,6 +571,35 @@ Item {
                                         font.pixelSize: 10
                                         font.bold: true
                                         color: Theme.textMuted
+                                    }
+
+                                    // Extra time indicator
+                                    Rectangle {
+                                        visible: extensionCount > 0
+                                        radius: 4
+                                        implicitWidth: extKbTxt.implicitWidth + 8
+                                        implicitHeight: 16
+                                        color: Theme.accentPurpleBg
+                                        border.color: Theme.accentPurpleBorder
+                                        border.width: 1
+
+                                        RowLayout {
+                                            anchors.centerIn: parent
+                                            spacing: 2
+                                            Components.LucideIcon { name: "sparkles"; size: 8; color: Theme.accentPurple }
+                                            Text {
+                                                id: extKbTxt
+                                                text: "+" + (extensionCount * 15) + "m"
+                                                font.pixelSize: 8
+                                                font.bold: true
+                                                color: Theme.accentPurple
+                                            }
+                                        }
+
+                                        ToolTip.visible: extKbHover.hovered
+                                        ToolTip.text: "+" + (extensionCount * 15) + "m extra time"
+                                        ToolTip.delay: 350
+                                        HoverHandler { id: extKbHover }
                                     }
                                 }
 

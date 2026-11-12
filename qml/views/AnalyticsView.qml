@@ -154,8 +154,14 @@ ScrollView {
 
                 RowLayout {
                     Layout.fillWidth: true
+                    spacing: 8
+                    Components.LucideIcon {
+                        name: "bar-chart-2"
+                        size: 15
+                        color: Theme.accentBlue
+                    }
                     Text {
-                        text: "📊 Weekly Productivity Trend"
+                        text: "Weekly Productivity Trend"
                         font.pixelSize: 15
                         font.bold: true
                         color: Theme.textPrimary
@@ -288,6 +294,35 @@ ScrollView {
                     }
                 }
 
+                readonly property int workMins: {
+                    let s = 0;
+                    for (let i = 0; i < activityModel.count; ++i) {
+                        let it = activityModel.get(i);
+                        if (it && it.category === "Work") s += (it.durationMinutes || 0);
+                    }
+                    return s;
+                }
+                readonly property int learnMins: {
+                    let s = 0;
+                    for (let i = 0; i < activityModel.count; ++i) {
+                        let it = activityModel.get(i);
+                        if (it && it.category === "Learning") s += (it.durationMinutes || 0);
+                    }
+                    return s;
+                }
+                readonly property int persMins: {
+                    let s = 0;
+                    for (let i = 0; i < activityModel.count; ++i) {
+                        let it = activityModel.get(i);
+                        if (it && it.category === "Personal") s += (it.durationMinutes || 0);
+                    }
+                    return s;
+                }
+                readonly property int totalCatMins: Math.max(1, workMins + learnMins + persMins)
+                readonly property int workPct: Math.round((workMins / totalCatMins) * 100)
+                readonly property int learnPct: Math.round((learnMins / totalCatMins) * 100)
+                readonly property int persPct: Math.max(0, 100 - workPct - learnPct)
+
                 // Multi-Segment Horizontal Distribution Bar
                 Rectangle {
                     Layout.fillWidth: true
@@ -299,22 +334,22 @@ ScrollView {
                     Row {
                         anchors.fill: parent
 
-                        // Work Segment (55% estimate)
+                        // Work Segment
                         Rectangle {
                             height: parent.height
-                            width: parent.width * 0.55
+                            width: parent.width * (parent.parent.parent.workMins / parent.parent.parent.totalCatMins)
                             color: Theme.accentBlue
                         }
-                        // Learning Segment (30% estimate)
+                        // Learning Segment
                         Rectangle {
                             height: parent.height
-                            width: parent.width * 0.30
+                            width: parent.width * (parent.parent.parent.learnMins / parent.parent.parent.totalCatMins)
                             color: Theme.accentAmber
                         }
-                        // Personal Segment (15% estimate)
+                        // Personal Segment
                         Rectangle {
                             height: parent.height
-                            width: parent.width * 0.15
+                            width: parent.width * (parent.parent.parent.persMins / parent.parent.parent.totalCatMins)
                             color: Theme.accentGreen
                         }
                     }
@@ -328,19 +363,19 @@ ScrollView {
                     RowLayout {
                         spacing: 6
                         Rectangle { width: 10; height: 10; radius: 5; color: Theme.accentBlue }
-                        Text { text: "Work (55%)"; color: Theme.textSecondary; font.pixelSize: 12; font.bold: true }
+                        Text { text: "Work (" + parent.parent.parent.workPct + "%)"; color: Theme.textSecondary; font.pixelSize: 12; font.bold: true }
                     }
 
                     RowLayout {
                         spacing: 6
                         Rectangle { width: 10; height: 10; radius: 5; color: Theme.accentAmber }
-                        Text { text: "Learning (30%)"; color: Theme.textSecondary; font.pixelSize: 12; font.bold: true }
+                        Text { text: "Learning (" + parent.parent.parent.learnPct + "%)"; color: Theme.textSecondary; font.pixelSize: 12; font.bold: true }
                     }
 
                     RowLayout {
                         spacing: 6
                         Rectangle { width: 10; height: 10; radius: 5; color: Theme.accentGreen }
-                        Text { text: "Personal (15%)"; color: Theme.textSecondary; font.pixelSize: 12; font.bold: true }
+                        Text { text: "Personal (" + parent.parent.parent.persPct + "%)"; color: Theme.textSecondary; font.pixelSize: 12; font.bold: true }
                     }
 
                     Item { Layout.fillWidth: true }
