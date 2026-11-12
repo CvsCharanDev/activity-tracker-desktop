@@ -4,7 +4,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 import ActivityTracker 1.0
-import "." as Components
 
 Dialog {
     id: settingsModal
@@ -61,7 +60,7 @@ Dialog {
                 }
                 spacing: 10
 
-                Components.LucideIcon {
+                LucideIcon {
                     name: "settings"
                     size: 18
                     color: Theme.accentBlue
@@ -83,7 +82,7 @@ Dialog {
                     radius: 15
                     color: closeSettingsHover.hovered ? Theme.surfaceBadge : "transparent"
 
-                    Components.LucideIcon {
+                    LucideIcon {
                         anchors.centerIn: parent
                         name: "x"
                         size: 14
@@ -183,7 +182,7 @@ Dialog {
                                     border.color: Theme.isDark ? Theme.accentBlue : Theme.borderDefault; border.width: 1
                                     RowLayout {
                                         anchors.centerIn: parent; spacing: 6
-                                        Components.LucideIcon { name: "moon"; size: 12; color: Theme.isDark ? Theme.accentBlue : Theme.textSecondary }
+                                        LucideIcon { name: "moon"; size: 12; color: Theme.isDark ? Theme.accentBlue : Theme.textSecondary }
                                         Text { text: "Dark"; font.bold: true; font.pixelSize: 11; color: Theme.isDark ? Theme.accentBlue : Theme.textSecondary }
                                     }
                                     TapHandler { onTapped: if (!Theme.isDark) Theme.toggleTheme() }
@@ -194,7 +193,7 @@ Dialog {
                                     border.color: !Theme.isDark ? Theme.accentBlue : Theme.borderDefault; border.width: 1
                                     RowLayout {
                                         anchors.centerIn: parent; spacing: 6
-                                        Components.LucideIcon { name: "sun"; size: 12; color: !Theme.isDark ? Theme.accentBlue : Theme.textSecondary }
+                                        LucideIcon { name: "sun"; size: 12; color: !Theme.isDark ? Theme.accentBlue : Theme.textSecondary }
                                         Text { text: "Light"; font.bold: true; font.pixelSize: 11; color: !Theme.isDark ? Theme.accentBlue : Theme.textSecondary }
                                     }
                                     TapHandler { onTapped: if (Theme.isDark) Theme.toggleTheme() }
@@ -221,7 +220,7 @@ Dialog {
                                     border.color: root.sidebarDock === "left" ? Theme.accentBlue : Theme.borderDefault; border.width: 1
                                     RowLayout {
                                         anchors.centerIn: parent; spacing: 6
-                                        Components.LucideIcon { name: "panel-left"; size: 12; color: root.sidebarDock === "left" ? Theme.accentBlue : Theme.textSecondary }
+                                        LucideIcon { name: "panel-left"; size: 12; color: root.sidebarDock === "left" ? Theme.accentBlue : Theme.textSecondary }
                                         Text { text: "Left"; font.bold: true; font.pixelSize: 11; color: root.sidebarDock === "left" ? Theme.accentBlue : Theme.textSecondary }
                                     }
                                     TapHandler { onTapped: { root.sidebarDock = "left"; appSettings.sidebarDock = "left" } }
@@ -232,7 +231,7 @@ Dialog {
                                     border.color: root.sidebarDock === "right" ? Theme.accentBlue : Theme.borderDefault; border.width: 1
                                     RowLayout {
                                         anchors.centerIn: parent; spacing: 6
-                                        Components.LucideIcon { name: "panel-right"; size: 12; color: root.sidebarDock === "right" ? Theme.accentBlue : Theme.textSecondary }
+                                        LucideIcon { name: "panel-right"; size: 12; color: root.sidebarDock === "right" ? Theme.accentBlue : Theme.textSecondary }
                                         Text { text: "Right"; font.bold: true; font.pixelSize: 11; color: root.sidebarDock === "right" ? Theme.accentBlue : Theme.textSecondary }
                                     }
                                     TapHandler { onTapped: { root.sidebarDock = "right"; appSettings.sidebarDock = "right" } }
@@ -327,7 +326,7 @@ Dialog {
                                     anchors.margins: 12
                                     spacing: 12
 
-                                    Components.LucideIcon {
+                                    LucideIcon {
                                         name: modelData.platform === "macos" ? "laptop" : "monitor"
                                         size: 18
                                         color: modelData.isCurrent ? Theme.accentBlue : Theme.textSecondary
@@ -403,7 +402,7 @@ Dialog {
                                 color: Theme.accentGreenBg; border.color: Theme.accentGreenBorder; border.width: 1
                                 RowLayout {
                                     anchors.centerIn: parent; spacing: 4
-                                    Components.LucideIcon { name: "cloud"; size: 11; color: Theme.accentGreen }
+                                    LucideIcon { name: "cloud"; size: 11; color: Theme.accentGreen }
                                     Text { text: "Connected"; font.bold: true; font.pixelSize: 10; color: Theme.accentGreen }
                                 }
                             }
