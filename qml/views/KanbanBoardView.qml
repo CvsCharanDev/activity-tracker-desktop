@@ -228,11 +228,7 @@ Item {
 
                 if (!matchesStatus) continue;
 
-                if (kanbanRoot.filterCategory === "Done") {
-                    if (!item.done) continue;
-                } else if (kanbanRoot.filterCategory === "In Progress") {
-                    if (itemStatus !== "In Progress") continue;
-                } else if (kanbanRoot.filterCategory !== "All") {
+                if (kanbanRoot.filterCategory !== "All") {
                     if (item.category !== kanbanRoot.filterCategory) continue;
                 }
 
@@ -259,8 +255,10 @@ Item {
                 const itemIndex = drop.source.modelIndex
                 if (colRoot.columnStatus === "Done") {
                     activityService.markComplete(itemIndex)
+                } else if (colRoot.columnStatus === "In Progress") {
+                    activityService.setActivityStatus(itemIndex, "In Progress")
                 } else {
-                    activityService.setActivityStatus(itemIndex, colRoot.columnStatus)
+                    activityService.setActivityStatus(itemIndex, "Created")
                 }
                 kanbanRoot.modelVersion++
             }
@@ -334,6 +332,16 @@ Item {
                 delegate: Item {
                     id: cardItemRoot
                     width: colListView.width
+                    required property int index
+                    required property string name
+                    required property string category
+                    required property int durationMinutes
+                    required property bool done
+                    required property string status
+                    required property string priority
+                    required property int extensionCount
+                    required property var createdAt
+
                     readonly property int modelIndex: index
                     readonly property string itemStatus: (status && status.length > 0) ? status : (done ? "Done" : "Created")
 
@@ -347,8 +355,6 @@ Item {
 
                     readonly property bool matchesCategory: {
                         if (kanbanRoot.filterCategory === "All") return true;
-                        if (kanbanRoot.filterCategory === "Done") return done;
-                        if (kanbanRoot.filterCategory === "In Progress") return itemStatus === "In Progress";
                         return category === kanbanRoot.filterCategory;
                     }
 
@@ -386,6 +392,7 @@ Item {
                             anchors.fill: parent
                             drag.target: dragProxy
                             drag.axis: Drag.XAndYAxis
+                            drag.threshold: 8
 
                             onDoubleClicked: {
                                 kanbanRoot.editRequested(cardItemRoot.modelIndex)
@@ -402,12 +409,19 @@ Item {
                                 dragProxy.priorityText = priority || "Medium";
                                 dragProxy.durationText = kanbanRoot.formatDurationBoth(durationMinutes);
                                 dragProxy.currentItemRoot = cardItemRoot;
-                                dragProxy.visible = true;
+                            }
+
+                            onPositionChanged: {
+                                if (drag.active && !dragProxy.visible) {
+                                    dragProxy.visible = true;
+                                }
                             }
 
                             onReleased: {
-                                dragProxy.Drag.drop();
-                                dragProxy.visible = false;
+                                if (dragProxy.visible) {
+                                    dragProxy.Drag.drop();
+                                    dragProxy.visible = false;
+                                }
                             }
                         }
 
@@ -435,7 +449,12 @@ Item {
                                     ToolTip.delay: 300
 
                                     HoverHandler { id: titleHov; cursorShape: Qt.PointingHandCursor }
-                                    TapHandler { onTapped: kanbanRoot.editRequested(cardItemRoot.modelIndex) }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        preventStealing: true
+                                        onClicked: kanbanRoot.editRequested(cardItemRoot.modelIndex)
+                                    }
                                 }
 
                                 // Priority Indicator Dot
@@ -510,7 +529,12 @@ Item {
                                         Components.LucideIcon { name: "zap"; size: 10; color: Theme.accentBlue }
                                         Text { text: "Start"; font.pixelSize: 10; font.bold: true; color: Theme.accentBlue }
                                     }
-                                    TapHandler { onTapped: activityService.setActivityStatus(index, "In Progress") }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        preventStealing: true
+                                        onClicked: activityService.setActivityStatus(cardItemRoot.modelIndex, "In Progress")
+                                    }
                                 }
 
                                 // If In Progress -> Show "+15m" and "Done" buttons
@@ -521,7 +545,12 @@ Item {
                                         implicitWidth: 42; implicitHeight: 22; radius: 6
                                         color: Theme.surfaceBadge; border.color: Theme.borderDefault; border.width: 1
                                         Text { anchors.centerIn: parent; text: "+15m"; font.pixelSize: 9; font.bold: true; color: Theme.accentBlue }
-                                        TapHandler { onTapped: activityService.extendActivity(index, 15) }
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            preventStealing: true
+                                            onClicked: activityService.extendActivity(cardItemRoot.modelIndex, 15)
+                                        }
                                     }
                                     Rectangle {
                                         implicitWidth: 46; implicitHeight: 22; radius: 6
@@ -531,7 +560,12 @@ Item {
                                             Components.LucideIcon { name: "check"; size: 10; color: Theme.accentGreen }
                                             Text { text: "Done"; font.pixelSize: 10; font.bold: true; color: Theme.accentGreen }
                                         }
-                                        TapHandler { onTapped: activityService.markComplete(index) }
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            preventStealing: true
+                                            onClicked: activityService.markComplete(cardItemRoot.modelIndex)
+                                        }
                                     }
                                 }
 
@@ -545,7 +579,12 @@ Item {
                                         Components.LucideIcon { name: "rotate-ccw"; size: 10; color: Theme.accentGreen }
                                         Text { text: "Reopen"; font.pixelSize: 10; font.bold: true; color: Theme.accentGreen }
                                     }
-                                    TapHandler { onTapped: activityService.reopenActivity(index) }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        preventStealing: true
+                                        onClicked: activityService.reopenActivity(cardItemRoot.modelIndex)
+                                    }
                                 }
 
                                 // Dedicated Edit Task Button (Available across ALL statuses: Todo, In Progress, Done)
@@ -569,7 +608,12 @@ Item {
                                     ToolTip.delay: 250
 
                                     HoverHandler { id: editBtnHov; cursorShape: Qt.PointingHandCursor }
-                                    TapHandler { onTapped: kanbanRoot.editRequested(cardItemRoot.modelIndex) }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        preventStealing: true
+                                        onClicked: kanbanRoot.editRequested(cardItemRoot.modelIndex)
+                                    }
                                 }
                             }
                         }

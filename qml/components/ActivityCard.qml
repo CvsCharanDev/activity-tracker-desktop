@@ -15,9 +15,9 @@ Rectangle {
     required property bool   done
     required property int    index
     required property var    createdAt
-    property string status: "Created"
-    property string priority: "Medium"
-    property int    extensionCount: 0
+    required property string status
+    required property string priority
+    required property int    extensionCount
 
     readonly property string activeStatus: (typeof card.status !== "undefined" && card.status && card.status.length > 0)
                                            ? card.status

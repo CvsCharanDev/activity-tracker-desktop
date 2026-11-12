@@ -317,6 +317,7 @@ ApplicationWindow {
 
     // ── Global Filter & Workstation State ────────────────────────────────────
     property string activeCategoryFilter: "All"
+    property string activeStatusFilter: "All"
     property string activePriorityFilter: "All"
     property string activeSearchQuery: ""
     property string activeTimeframe: appSettings.activeTimeframe
@@ -1157,7 +1158,7 @@ ApplicationWindow {
                             spacing: 6
 
                             Repeater {
-                                model: ["All", "Work", "Learning", "Personal", "Done"]
+                                model: ["All", "Work", "Learning", "Personal"]
                                 delegate: Rectangle {
                                     id: chip
                                     implicitHeight: 32
@@ -1186,6 +1187,90 @@ ApplicationWindow {
                                     TapHandler {
                                         onTapped: root.activeCategoryFilter = modelData
                                     }
+                                }
+                            }
+                        }
+
+                        // Status Filter Dropdown Pill (Visible in List View; Kanban columns natively separate status)
+                        Rectangle {
+                            id: statusFilterBtn
+                            visible: root.currentViewMode === "list"
+                            implicitHeight: 32
+                            implicitWidth: statusFilterRow.implicitWidth + 20
+                            radius: 6
+                            readonly property bool isFiltered: root.activeStatusFilter !== "All"
+                            color: isFiltered ? Theme.accentBlueBg : (statusFilterHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge)
+                            border.color: isFiltered ? Theme.accentBlue : Theme.borderDefault
+                            border.width: 1
+
+                            Behavior on color { ColorAnimation { duration: 120 } }
+
+                            RowLayout {
+                                id: statusFilterRow
+                                anchors.centerIn: parent
+                                spacing: 6
+
+                                Components.LucideIcon {
+                                    name: {
+                                        switch (root.activeStatusFilter) {
+                                        case "Todo": return "list-todo";
+                                        case "In Progress": return "zap";
+                                        case "Done": return "check";
+                                        default: return "layers";
+                                        }
+                                    }
+                                    size: 11
+                                    color: statusFilterBtn.isFiltered ? Theme.accentBlue : Theme.textSecondary
+                                }
+
+                                Text {
+                                    text: root.activeStatusFilter === "All" ? "Status: All" : ("Status: " + root.activeStatusFilter)
+                                    font.pixelSize: 11
+                                    font.bold: statusFilterBtn.isFiltered
+                                    color: statusFilterBtn.isFiltered ? Theme.accentBlue : Theme.textSecondary
+                                }
+
+                                Components.LucideIcon {
+                                    name: "chevron-down"
+                                    size: 11
+                                    color: Theme.textMuted
+                                }
+                            }
+
+                            ToolTip.visible: statusFilterHover.hovered
+                            ToolTip.text: "Filter activities by lifecycle status"
+                            ToolTip.delay: 300
+
+                            HoverHandler { id: statusFilterHover; cursorShape: Qt.PointingHandCursor }
+                            TapHandler { onTapped: statusFilterMenu.open() }
+
+                            ModernMenu {
+                                id: statusFilterMenu
+                                y: statusFilterBtn.height + 4
+
+                                Action {
+                                    text: "All Statuses"
+                                    checkable: true
+                                    checked: root.activeStatusFilter === "All"
+                                    onTriggered: root.activeStatusFilter = "All"
+                                }
+                                Action {
+                                    text: "Todo / Backlog"
+                                    checkable: true
+                                    checked: root.activeStatusFilter === "Todo"
+                                    onTriggered: root.activeStatusFilter = "Todo"
+                                }
+                                Action {
+                                    text: "In Progress"
+                                    checkable: true
+                                    checked: root.activeStatusFilter === "In Progress"
+                                    onTriggered: root.activeStatusFilter = "In Progress"
+                                }
+                                Action {
+                                    text: "Completed (Done)"
+                                    checkable: true
+                                    checked: root.activeStatusFilter === "Done"
+                                    onTriggered: root.activeStatusFilter = "Done"
                                 }
                             }
                         }
@@ -1453,6 +1538,7 @@ ApplicationWindow {
                             id: mainListView
                             anchors.fill: parent
                             filterCategory: root.activeCategoryFilter
+                            filterStatus: root.activeStatusFilter
                             filterPriority: root.activePriorityFilter
                             filterText: root.activeSearchQuery
                             filterTimeframe: root.activeTimeframe

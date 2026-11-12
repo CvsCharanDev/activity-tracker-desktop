@@ -11,6 +11,7 @@ ListView {
     spacing: 8
 
     property string filterCategory: "All"
+    property string filterStatus: "All"
     property string filterPriority: "All"
     property string filterText: ""
     property string filterTimeframe: "All Time"
@@ -51,14 +52,16 @@ ListView {
             if (!item) continue;
             const itemStatus = (item.status && item.status.length > 0) ? item.status : (item.done ? "Done" : "Created");
 
-            if (listView.filterCategory === "Done") {
-                if (!item.done) continue;
-            } else if (listView.filterCategory === "In Progress") {
+            // Category filter
+            if (listView.filterCategory !== "All" && item.category !== listView.filterCategory) continue;
+
+            // Status filter
+            if (listView.filterStatus === "Done") {
+                if (!item.done && itemStatus !== "Done") continue;
+            } else if (listView.filterStatus === "In Progress") {
                 if (item.done || itemStatus !== "In Progress") continue;
-            } else if (listView.filterCategory === "Todo") {
+            } else if (listView.filterStatus === "Todo") {
                 if (item.done || itemStatus !== "Created") continue;
-            } else if (listView.filterCategory !== "All") {
-                if (item.category !== listView.filterCategory) continue;
             }
 
             if (listView.filterPriority !== "All" && (item.priority || "Medium") !== listView.filterPriority) continue;
@@ -91,10 +94,15 @@ ListView {
         // ── Filter Evaluation ─────────────────────────────────────────────────
         readonly property bool matchesCategory: {
             if (listView.filterCategory === "All") return true;
-            if (listView.filterCategory === "Done") return cardDelegate.done;
-            if (listView.filterCategory === "In Progress") return cardDelegate.activeStatus === "In Progress";
-            if (listView.filterCategory === "Todo") return cardDelegate.activeStatus === "Created";
             return cardDelegate.category === listView.filterCategory;
+        }
+
+        readonly property bool matchesStatus: {
+            if (listView.filterStatus === "All") return true;
+            if (listView.filterStatus === "Done") return cardDelegate.done || cardDelegate.activeStatus === "Done";
+            if (listView.filterStatus === "In Progress") return !cardDelegate.done && cardDelegate.activeStatus === "In Progress";
+            if (listView.filterStatus === "Todo") return !cardDelegate.done && cardDelegate.activeStatus === "Created";
+            return true;
         }
 
         readonly property bool matchesPriority: {
@@ -125,7 +133,7 @@ ListView {
             return true;
         }
 
-        readonly property bool isVisibleInFilter: matchesCategory && matchesPriority && matchesSearch && matchesTimeframe
+        readonly property bool isVisibleInFilter: matchesCategory && matchesStatus && matchesPriority && matchesSearch && matchesTimeframe
 
         visible: isVisibleInFilter
         height: isVisibleInFilter ? 76 : 0
