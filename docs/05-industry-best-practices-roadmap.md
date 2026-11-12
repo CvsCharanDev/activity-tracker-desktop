@@ -10,15 +10,17 @@ We will follow this roadmap to implement features **one by one on a daily basis*
 
 | Category | Industry Best Practice | Status in Project | Learning Goal / Qt Concept |
 |---|---|---|---|
-| **1. Branding** | Dedicated application logo in header, window icon, and Windows `.exe` icon | 🔄 *In Progress* | `QIcon`, `.rc` Windows resource script, embedded SVG resources |
-| **2. Startup UX** | Native Splash Screen during boot with loading progress | ⏳ *Next Up* | `QSplashScreen`, asynchronous QML component loading |
-| **3. Window State** | Remembers window size, position, and maximized state across reboots | ⏳ *Pending* | `QSettings`, Registry / `.ini` file persistence |
-| **4. Live Filtering** | Real-time text search and category filter buttons | ⏳ *Pending* | `QSortFilterProxyModel`, regex filtering, Qt MVC architecture |
-| **5. Keyboard Productivity** | Global shortcuts (`Ctrl+N` for new activity, `Ctrl+F` search, `Esc` cancel) | ⏳ *Pending* | QML `Shortcut`, `Action`, accessible keyboard navigation |
-| **6. System Tray** | Minimize to tray, background execution, and right-click context menu | ⏳ *Pending* | `QSystemTrayIcon`, `QMenu`, desktop lifecycle management |
-| **7. Data Portability** | Export to CSV / JSON and Import backup via native file dialogs | ⏳ *Pending* | `QFileDialog`, `QTextStream`, data export streams |
-| **8. Diagnostics** | Rotating log files in `%LOCALAPPDATA%\logs` for bug reports | ⏳ *Pending* | `qInstallMessageHandler`, custom logging patterns |
-| **9. Packaging** | One-click Windows installer with Desktop & Start Menu shortcuts | ⏳ *Pending* | CPack, Inno Setup, automated dependency bundling |
+| **1. Branding & Design** | shadcn/ui inspired primitives, custom icons, dark/light theme | ✅ *Completed* | `QIcon`, vector SVGs, `MultiEffect` dynamic tinting |
+| **2. Dual-View Workflow** | High-density List View & 3-stage interactive Kanban Board | ✅ *Completed* | Reactive `QAbstractListModel`, bidirectional Drag & Drop |
+| **3. Window State** | Remembers window size, dock position, timeframe, and view mode | ✅ *Completed* | `QSettings` / `appSettings` persistent workstation state |
+| **4. Live Filtering** | Multi-dimensional instant search, category, priority (P0-P3), and status | ✅ *Completed* | Reactive client-side filtering with live reactive count recalculations |
+| **5. Keyboard Productivity** | Global shortcuts (`Ctrl+N`, `Ctrl+F`, `Ctrl+1` list, `Ctrl+2` board, `Ctrl+B`, `Ctrl+T`) | ✅ *Completed* | QML `Shortcut`, `Action`, keyboard navigation |
+| **6. Enterprise Security** | Session management, remote session revocation, same-device dedup | ✅ *Completed* | `AuthService`, `UserSession`, crypto hashing |
+| **7. Data Portability** | JSON persistence + Neon Serverless PostgreSQL cloud sync | ✅ *Completed* | `JsonStore`, REST/HTTP cloud synchronization |
+| **8. Startup UX** | Native Splash Screen during boot with loading progress | ⏳ *Next Up* | `QSplashScreen`, asynchronous QML component loading |
+| **9. System Tray** | Minimize to tray, background execution, and right-click context menu | ⏳ *Pending* | `QSystemTrayIcon`, `QMenu`, desktop lifecycle management |
+| **10. Diagnostics** | Rotating log files in `%LOCALAPPDATA%\logs` for bug reports | ⏳ *Pending* | `qInstallMessageHandler`, custom logging patterns |
+| **11. Packaging** | One-click Windows installer with Desktop & Start Menu shortcuts | 🔄 *CI Active* | Inno Setup / CPack, automated GitHub Actions release bundling |
 
 ---
 

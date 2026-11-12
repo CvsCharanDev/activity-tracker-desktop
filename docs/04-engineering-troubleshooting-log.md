@@ -265,3 +265,93 @@ If reducing the macOS archive footprint is desired in future releases:
    ```
 2. **Mach-O Symbol Stripping:** Run `strip -S` on deployed frameworks to remove non-global symbol tables prior to notarization.
 3. **Industry Standard Context:** 100–150 MB is the standard baseline for self-contained, notarizable Qt 6 desktop apps on macOS (e.g. Telegram Desktop, OBS Studio, Wireshark).
+
+---
+
+## Issue 10: Duplicate Signal Declaration on Aliased Properties (`[duplicated-name]`)
+
+### 🔴 Symptom
+Qt Creator and `qmllint` reported a static syntax warning in `ShadcnInput.qml`:
+```text
+Duplicated signal name "textChanged", "textChanged" is already a signal. [duplicated-name]
+```
+
+### 🔍 Root Cause Analysis
+In QML, declaring an alias property (`property alias text: textField.text`) automatically generates a change notification signal named `textChanged` tied directly to the aliased target. When the component also declared an explicit `signal textChanged(string newText)`, it generated a duplicate signal collision in the QML engine's meta-object table.
+
+### 🟢 Resolution
+Removed the redundant explicit signal and the redundant `onTextChanged: textChanged(text)` bridge. Callers listen directly to the automatically propagated `onTextChanged` handler provided by the property alias.
+
+---
+
+## Issue 11: Scope Shadowing via `import "." as Components` (`[renamed-type]`)
+
+### 🔴 Symptom
+`SettingsModal.qml` emitted linter warnings:
+```text
+"ShadcnButton" is explicitly renamed to "Components.ShadcnButton" via a qmldir entry or QT_QML_SOURCE_TYPENAME CMake property. [renamed-type]
+```
+
+### 🔍 Root Cause Analysis
+`SettingsModal.qml` already resided in `qml/components/`. At the top of the file, it executed `import "." as Components`. In Qt 6, importing the current directory under an explicit namespace qualifier causes the QML compiler to require all sibling types to be accessed through that qualifier (or warn of ambiguous shadowing).
+
+### 🟢 Resolution
+Removed `import "." as Components`. All sibling components (`ShadcnButton`, `ShadcnSelect`, `LucideIcon`) are natively in scope within the directory and are properly namespaced through the CMake QML module (`ActivityTracker 1.0`).
+
+---
+
+## Issue 12: Qt 6 QML Delegate Role Binding Failures (`required property`)
+
+### 🔴 Symptom
+In both `ActivityCard.qml` and `KanbanBoardView.qml`, activities failed to reflect active status changes (`"In Progress"` or priority changes). Cards remained locked in their default status (`"Created"` / `false`).
+
+### 🔍 Root Cause Analysis
+In Qt 6, `ListView` delegates consuming a C++ `QAbstractListModel` **only inject model roles into properties declared with `required property`**. 
+- In `ActivityCard.qml`, `status`, `priority`, and `extensionCount` were declared as regular properties (`property string status: "Created"`), preventing Qt 6 from binding the `StatusRole` and `PriorityRole` from `ActivityListModel`.
+- In `KanbanBoardView.qml`, the delegate omitted `required property` declarations entirely, falling back to unstable context lookups.
+
+### 🟢 Resolution
+Declared all model role properties as `required property` in both delegate files:
+```qml
+required property string name
+required property string category
+required property int    durationMinutes
+required property bool   done
+required property int    index
+required property var    createdAt
+required property string status
+required property string priority
+required property int    extensionCount
+```
+All role changes emitted by C++ `dataChanged()` signals now propagate reactively with zero lag.
+
+---
+
+## Issue 13: Mouse Event Hijacking in Kanban Drag & Drop vs Action Buttons
+
+### 🔴 Symptom
+Clicking **"Start"**, **"+15m"**, **"Done"**, **"Reopen"**, or **"Edit"** on a Kanban card was completely unresponsive; clicking them seemed to do nothing or randomly flickered.
+
+### 🔍 Root Cause Analysis
+The card background had a `MouseArea` for dragging that executed `dragProxy.visible = true` directly inside `onPressed`. Because `dragProxy` had `z: 99999` and matched the card's exact coordinates, pressing down on any button instantly spawned `dragProxy` directly under the cursor. The subsequent mouse release hit the drag proxy instead of the button below it, preventing button `TapHandler`s from ever completing a click.
+
+### 🟢 Resolution
+1. Added `drag.threshold: 8` and deferred `dragProxy.visible = true` to `onPositionChanged` (only when `drag.active` is true).
+2. Wrapped card action buttons in their own `MouseArea { preventStealing: true }`, ensuring clicks execute their business logic immediately without ever triggering a card drag.
+
+---
+
+## Issue 14: QML Engine Initialization Crash (`Cannot assign to non-existent property "onAddRequested"`)
+
+### 🔴 Symptom
+Application crashed on startup with code 1:
+```text
+qrc:/qt/qml/ActivityTracker/qml/main.qml:1541:29: Cannot assign to non-existent property "onAddRequested"
+Failed to load QML: QUrl("qrc:/qt/qml/ActivityTracker/qml/main.qml")
+```
+
+### 🔍 Root Cause Analysis
+`main.qml` bound `onAddRequested` to both `mainListView` and `kanbanBoardView`. While `KanbanBoardView.qml` declared `signal addRequested()`, `ActivityListView.qml` had not declared the signal.
+
+### 🟢 Resolution
+Declared `signal addRequested()` in `ActivityListView.qml`, ensuring interface parity between the List and Kanban views.

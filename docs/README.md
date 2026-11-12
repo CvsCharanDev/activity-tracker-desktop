@@ -30,10 +30,17 @@ Welcome to the technical documentation for **CVS Activity Tracker**, built with 
    - QML delegate required property role resolution in Qt 6 (`(Untitled Activity)` fix)
    - Multi-Platform CI/CD workflow engineering (Python 3.15 alpha override, MSVC `win64_msvc2022_64`, macOS Carbon `AGL` linker workaround, CTest DLL path injection)
    - Material Design mobile floating label overlay resolution on desktop containers
+   - Duplicate signal declaration on aliased properties (`[duplicated-name]`)
+   - QML directory namespace scope collisions (`import "." as Components`)
+   - Qt 6 QML delegate role binding failures (`status`, `priority`, `extensionCount`) in dual views
+   - Mouse event hijacking in Kanban Drag & Drop vs action button clicks
+   - Cross-view QML signal parity resolution (`addRequested`)
 
 5. [**05-industry-best-practices-roadmap.md**](05-industry-best-practices-roadmap.md)
    - Commercial desktop standards matrix
-   - Day-by-day implementation roadmap (Branding, Splash Screen, Window State, Filter Proxy, System Tray, CSV Export, Logging)
+   - Status tracking across Branding, Dual-View Workflow, Window State, Live Filtering, Enterprise Security, Data Portability, System Tray, and Packaging
+   - Interactive Kanban Board (Todo, In Progress, Completed) with bidirectional drag & drop
+   - Modern shadcn/ui design tokens and P0-P3 concise priority system
 
 6. [**06-v2-architecture-auth-and-neon-db.md**](06-v2-architecture-auth-and-neon-db.md)
    - Complete multi-screen architecture with `StackView`
