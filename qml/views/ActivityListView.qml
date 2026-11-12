@@ -17,6 +17,7 @@ ListView {
     property string filterTimeframe: "All Time"
 
     signal editRequested(int index)
+    signal addRequested()
 
     // Reactive model version counter — updates when activity state mutates
     property int modelVersion: 0
