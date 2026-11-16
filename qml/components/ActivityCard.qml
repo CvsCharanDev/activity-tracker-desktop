@@ -245,7 +245,7 @@ Rectangle {
 
             // Quiet, Borderless Metadata Row (No visual clutter or badge boxes!)
             RowLayout {
-                spacing: 7
+                spacing: 6
                 Layout.alignment: Qt.AlignVCenter
 
                 // Priority Indicator: Clean vector micro-dot + Code
@@ -272,91 +272,57 @@ Rectangle {
                     color: Theme.textMuted
                 }
 
-                // Category: Subtle icon + Text
-                RowLayout {
-                    spacing: 4
-                    LucideIcon {
-                        name: {
-                            switch (card.category) {
-                            case "Work":     return "briefcase";
-                            case "Learning": return "book-open";
-                            case "Personal": return "user";
-                            default:         return "list-todo";
-                            }
-                        }
-                        size: 11
-                        color: {
-                            switch (card.category) {
-                            case "Work":     return Theme.accentBlue;
-                            case "Learning": return Theme.accentAmber;
-                            case "Personal": return Theme.accentGreen;
-                            default:         return Theme.textSecondary;
-                            }
-                        }
-                    }
-                    Text {
-                        text: card.category && card.category.length > 0 ? card.category : "General"
-                        font.pixelSize: 10
-                        font.bold: true
-                        color: Theme.textSecondary
-                    }
+                // Category Text
+                Text {
+                    text: card.category && card.category.length > 0 ? card.category : "General"
+                    font.pixelSize: 10
+                    font.bold: true
+                    color: Theme.textSecondary
                 }
 
                 // Scheduled Window or Timestamp
-                Item {
+                RowLayout {
                     visible: (card.scheduledStartTime && card.scheduledStartTime.length > 0) || card.isOverdue
-                    implicitWidth: schedMetaRow.implicitWidth
-                    implicitHeight: 16
+                    spacing: 5
 
-                    RowLayout {
-                        id: schedMetaRow
-                        spacing: 6
+                    Text {
+                        text: "•"
+                        font.pixelSize: 10
+                        color: Theme.textMuted
+                    }
 
-                        Text {
-                            text: "•"
-                            font.pixelSize: 10
-                            color: Theme.textMuted
+                    LucideIcon {
+                        name: card.isOverdue ? "alert-triangle" : "calendar"
+                        size: 10
+                        color: card.isOverdue ? Theme.accentRose : Theme.textMuted
+                    }
+
+                    Text {
+                        text: {
+                            if (card.isOverdue && !card.done) return "Overdue"
+                            return card.formatScheduleWindow(card.scheduledStartTime, card.scheduledEndTime)
                         }
-
-                        LucideIcon {
-                            name: card.isOverdue ? "alert-triangle" : "calendar"
-                            size: 10
-                            color: card.isOverdue ? Theme.accentRose : Theme.textMuted
-                        }
-
-                        Text {
-                            text: {
-                                if (card.isOverdue && !card.done) return "Overdue"
-                                return card.formatScheduleWindow(card.scheduledStartTime, card.scheduledEndTime)
-                            }
-                            font.pixelSize: 10
-                            font.bold: card.isOverdue
-                            color: card.isOverdue ? Theme.accentRose : Theme.textSecondary
-                        }
+                        font.pixelSize: 10
+                        font.bold: card.isOverdue
+                        color: card.isOverdue ? Theme.accentRose : Theme.textSecondary
                     }
                 }
 
                 // Creation Timestamp (Fallback when no schedule exists)
-                Item {
+                RowLayout {
                     visible: !card.scheduledStartTime || card.scheduledStartTime.length === 0
-                    implicitWidth: dateMetaRow.implicitWidth
-                    implicitHeight: 16
+                    spacing: 5
 
-                    RowLayout {
-                        id: dateMetaRow
-                        spacing: 6
+                    Text {
+                        text: "•"
+                        font.pixelSize: 10
+                        color: Theme.textMuted
+                    }
 
-                        Text {
-                            text: "•"
-                            font.pixelSize: 10
-                            color: Theme.textMuted
-                        }
-
-                        Text {
-                            text: card.formatHistoryDate(card.createdAt)
-                            font.pixelSize: 10
-                            color: Theme.textMuted
-                        }
+                    Text {
+                        text: card.formatHistoryDate(card.createdAt)
+                        font.pixelSize: 10
+                        color: Theme.textMuted
                     }
                 }
 
@@ -484,6 +450,15 @@ Rectangle {
                 ToolTip.delay: 250
                 HoverHandler { id: extPillHover }
             }
+        }
+
+        // Subtle Vertical Divider between Data Telemetry and Interactive Actions
+        Rectangle {
+            implicitWidth: 1
+            implicitHeight: 18
+            color: Theme.borderDefault
+            Layout.leftMargin: 2
+            Layout.rightMargin: 2
         }
 
         // ── 4. Tactile Action Chips Deck ──────────────────────────────────────

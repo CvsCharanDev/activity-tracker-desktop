@@ -577,9 +577,10 @@ ApplicationWindow {
                     }
                 }
 
-                Item { Layout.preferredWidth: 12 }
+                Item { Layout.fillWidth: true }
 
-                // ── Timeframe Scope Dropdown Selector ─────────────────────────
+                // ── Right Control Deck (Timeframe, Refresh, Telemetry, Theme, User) ──
+                // 1. Timeframe Scope Dropdown Selector
                 Rectangle {
                     id: timeframeBtn
                     implicitHeight: 32
@@ -599,15 +600,15 @@ ApplicationWindow {
 
                         Components.LucideIcon {
                             Layout.alignment: Qt.AlignVCenter
-                            name: "clock"
-                            size: 13
-                            color: Theme.accentBlue
+                            name: "calendar"
+                            size: 12
+                            color: Theme.textSecondary
                         }
 
                         Text {
                             Layout.alignment: Qt.AlignVCenter
                             text: root.activeTimeframe
-                            font.pixelSize: 12
+                            font.pixelSize: 11
                             font.bold: true
                             color: Theme.textPrimary
                         }
@@ -615,13 +616,13 @@ ApplicationWindow {
                         Components.LucideIcon {
                             Layout.alignment: Qt.AlignVCenter
                             name: "chevron-down"
-                            size: 12
+                            size: 11
                             color: Theme.textMuted
                         }
                     }
 
                     ToolTip.visible: tfHover.hovered
-                    ToolTip.text: "Filter query timeframe"
+                    ToolTip.text: "Filter metrics timeframe"
                     ToolTip.delay: 300
 
                     HoverHandler { id: tfHover; cursorShape: Qt.PointingHandCursor }
@@ -672,7 +673,7 @@ ApplicationWindow {
                     }
                 }
 
-                // ── Refresh Database Button (F5 / Ctrl+R) ─────────────────────
+                // 2. Refresh Database Button
                 Rectangle {
                     id: refreshBtn
                     implicitWidth: 32
@@ -692,7 +693,7 @@ ApplicationWindow {
                     }
 
                     ToolTip.visible: refreshHover.hovered
-                    ToolTip.text: "Refresh Data from Database (F5 / Ctrl+R)"
+                    ToolTip.text: "Refresh Data (F5 / Ctrl+R)"
                     ToolTip.delay: 300
 
                     HoverHandler { id: refreshHover; cursorShape: Qt.PointingHandCursor }
@@ -700,8 +701,6 @@ ApplicationWindow {
                         onTapped: activityService.refresh()
                     }
                 }
-
-                Item { Layout.fillWidth: true }
 
                 // Quick stats pill in header
                 Rectangle {
@@ -1151,12 +1150,99 @@ ApplicationWindow {
                         timeframe: root.activeTimeframe
                     }
 
-                    // ── 2. Interactive Filter & Search Toolbar ────────────────
+                    // ── 2. Interactive Filter & Search Toolbar (Standard Desktop Flow) ────────
                     RowLayout {
                         id: filterToolbarRow
                         Layout.fillWidth: true
                         Layout.topMargin: 4
                         spacing: 10
+
+                        // ── View Mode Switcher: List vs Kanban Board ───────────
+                        Rectangle {
+                            implicitHeight: 32
+                            implicitWidth: 150
+                            radius: 8
+                            color: Theme.surfaceBadge
+                            border.color: Theme.borderDefault
+                            border.width: 1
+
+                            RowLayout {
+                                anchors.fill: parent
+                                spacing: 2
+                                anchors.margins: 2
+
+                                // List View Switch Pill
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    radius: 6
+                                    color: root.currentViewMode === "list" ? (Theme.isDark ? "#22252C" : "#FFFFFF") : (listModeHov.hovered ? Theme.surfaceCardHover : "transparent")
+                                    border.color: root.currentViewMode === "list" ? Theme.borderDefault : "transparent"
+                                    border.width: 1
+
+                                    RowLayout {
+                                        anchors.centerIn: parent
+                                        spacing: 5
+                                        Components.LucideIcon {
+                                            name: "layout-grid"
+                                            size: 12
+                                            color: root.currentViewMode === "list" ? Theme.textPrimary : Theme.textMuted
+                                        }
+                                        Text {
+                                            text: "List"
+                                            font.pixelSize: 11
+                                            font.bold: root.currentViewMode === "list"
+                                            color: root.currentViewMode === "list" ? Theme.textPrimary : Theme.textSecondary
+                                        }
+                                    }
+
+                                    HoverHandler { id: listModeHov; cursorShape: Qt.PointingHandCursor }
+                                    TapHandler {
+                                        onTapped: root.currentViewMode = "list"
+                                    }
+                                }
+
+                                // Kanban Board Switch Pill
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    radius: 6
+                                    color: root.currentViewMode === "kanban" ? (Theme.isDark ? "#22252C" : "#FFFFFF") : (boardModeHov.hovered ? Theme.surfaceCardHover : "transparent")
+                                    border.color: root.currentViewMode === "kanban" ? Theme.borderDefault : "transparent"
+                                    border.width: 1
+
+                                    RowLayout {
+                                        anchors.centerIn: parent
+                                        spacing: 5
+                                        Components.LucideIcon {
+                                            name: "kanban"
+                                            size: 12
+                                            color: root.currentViewMode === "kanban" ? Theme.textPrimary : Theme.textMuted
+                                        }
+                                        Text {
+                                            text: "Board"
+                                            font.pixelSize: 11
+                                            font.bold: root.currentViewMode === "kanban"
+                                            color: root.currentViewMode === "kanban" ? Theme.textPrimary : Theme.textSecondary
+                                        }
+                                    }
+
+                                    HoverHandler { id: boardModeHov; cursorShape: Qt.PointingHandCursor }
+                                    TapHandler {
+                                        onTapped: root.currentViewMode = "kanban"
+                                    }
+                                }
+                            }
+                        }
+
+                        // Subtle Divider
+                        Rectangle {
+                            implicitWidth: 1
+                            implicitHeight: 20
+                            color: Theme.borderDefault
+                            Layout.leftMargin: 2
+                            Layout.rightMargin: 2
+                        }
 
                         // Category Filter Chips
                         RowLayout {
@@ -1172,7 +1258,7 @@ ApplicationWindow {
                                     readonly property bool isSelected: root.activeCategoryFilter === modelData
 
                                     color: isSelected 
-                                           ? (Theme.isDark ? "#222226" : "#FFFFFF") 
+                                           ? (Theme.isDark ? "#22252C" : "#FFFFFF") 
                                            : (chipHover.hovered ? Theme.surfaceCardHover : "transparent")
                                     border.color: isSelected ? Theme.borderDefault : (chipHover.hovered ? Theme.borderSubtle : "transparent")
                                     border.width: 1
@@ -1196,6 +1282,8 @@ ApplicationWindow {
                                 }
                             }
                         }
+
+                        Item { Layout.fillWidth: true }
 
                         // Status Filter Dropdown Pill (Visible in List View; Kanban columns natively separate status)
                         Rectangle {
@@ -1360,86 +1448,6 @@ ApplicationWindow {
                                     checkable: true
                                     checked: root.activePriorityFilter === "Low"
                                     onTriggered: root.activePriorityFilter = "Low"
-                                }
-                            }
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        // ── View Mode Switcher: List vs Kanban Board ───────────
-                        Rectangle {
-                            implicitHeight: 32
-                            implicitWidth: 160
-                            radius: 8
-                            color: Theme.isDark ? "#121215" : "#EAECEF"
-                            border.color: Theme.borderDefault
-                            border.width: 1
-
-                            RowLayout {
-                                anchors.fill: parent
-                                spacing: 2
-                                anchors.margins: 2
-
-                                // List View Switch Pill
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    Layout.fillHeight: true
-                                    radius: 6
-                                    color: root.currentViewMode === "list" ? (Theme.isDark ? "#222226" : "#FFFFFF") : (listModeHov.hovered ? Theme.surfaceCardHover : "transparent")
-                                    border.color: root.currentViewMode === "list" ? Theme.borderDefault : "transparent"
-                                    border.width: 1
-
-                                    RowLayout {
-                                        anchors.centerIn: parent
-                                        spacing: 5
-                                        Components.LucideIcon {
-                                            name: "layout-grid"
-                                            size: 12
-                                            color: root.currentViewMode === "list" ? Theme.textPrimary : Theme.textMuted
-                                        }
-                                        Text {
-                                            text: "List"
-                                            font.pixelSize: 11
-                                            font.bold: root.currentViewMode === "list"
-                                            color: root.currentViewMode === "list" ? Theme.textPrimary : Theme.textSecondary
-                                        }
-                                    }
-
-                                    HoverHandler { id: listModeHov; cursorShape: Qt.PointingHandCursor }
-                                    TapHandler {
-                                        onTapped: root.currentViewMode = "list"
-                                    }
-                                }
-
-                                // Kanban Board Switch Pill
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    Layout.fillHeight: true
-                                    radius: 6
-                                    color: root.currentViewMode === "kanban" ? (Theme.isDark ? "#222226" : "#FFFFFF") : (boardModeHov.hovered ? Theme.surfaceCardHover : "transparent")
-                                    border.color: root.currentViewMode === "kanban" ? Theme.borderDefault : "transparent"
-                                    border.width: 1
-
-                                    RowLayout {
-                                        anchors.centerIn: parent
-                                        spacing: 5
-                                        Components.LucideIcon {
-                                            name: "kanban"
-                                            size: 12
-                                            color: root.currentViewMode === "kanban" ? Theme.textPrimary : Theme.textMuted
-                                        }
-                                        Text {
-                                            text: "Board"
-                                            font.pixelSize: 11
-                                            font.bold: root.currentViewMode === "kanban"
-                                            color: root.currentViewMode === "kanban" ? Theme.textPrimary : Theme.textSecondary
-                                        }
-                                    }
-
-                                    HoverHandler { id: boardModeHov; cursorShape: Qt.PointingHandCursor }
-                                    TapHandler {
-                                        onTapped: root.currentViewMode = "kanban"
-                                    }
                                 }
                             }
                         }
