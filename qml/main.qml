@@ -537,23 +537,21 @@ ApplicationWindow {
                     ColumnLayout {
                         spacing: 1
                         Text {
-                            text: "CVS Activity Tracker"
-                            font.pixelSize: 15
+                            text: "Activity Tracker"
+                            font.pixelSize: 14
                             font.bold: true
                             color: Theme.textPrimary
                         }
                         RowLayout {
                             spacing: 6
                             Text {
-                                text: "Enterprise Workstation"
+                                text: "Desktop Workstation"
                                 font.pixelSize: 10
-                                font.bold: true
-                                color: Theme.accentBlue
-                                font.letterSpacing: 0.5
+                                color: Theme.textSecondary
                             }
                             Text { text: "•"; color: Theme.textMuted; font.pixelSize: 10 }
                             
-                            // Dynamic Neon Database Sync Indicator
+                            // Dynamic Sync Indicator (Quiet, Subtle)
                             RowLayout {
                                 spacing: 4
                                 Components.LucideIcon {
@@ -562,20 +560,17 @@ ApplicationWindow {
                                     size: 10
                                     color: activityService.syncStatus === "syncing" 
                                            ? Theme.accentBlue 
-                                           : (activityService.syncStatus === "offline" ? Theme.accentAmber : Theme.accentGreen)
+                                           : (activityService.syncStatus === "offline" ? Theme.accentAmber : Theme.textMuted)
                                 }
                                 Text {
                                     Layout.alignment: Qt.AlignVCenter
                                     text: {
-                                        if (activityService.syncStatus === "syncing") return "Syncing Neon DB..."
-                                        if (activityService.syncStatus === "offline") return "Offline Cache"
-                                        return "Neon PostgreSQL Synced"
+                                        if (activityService.syncStatus === "syncing") return "Syncing..."
+                                        if (activityService.syncStatus === "offline") return "Offline"
+                                        return "Synced"
                                     }
                                     font.pixelSize: 10
-                                    font.bold: true
-                                    color: activityService.syncStatus === "syncing" 
-                                           ? Theme.accentBlue 
-                                           : (activityService.syncStatus === "offline" ? Theme.accentAmber : Theme.accentGreen)
+                                    color: Theme.textMuted
                                 }
                             }
                         }

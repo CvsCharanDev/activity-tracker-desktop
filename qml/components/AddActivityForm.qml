@@ -171,7 +171,7 @@ ColumnLayout {
             Rectangle {
                 id: catWork
                 Layout.fillWidth: true
-                implicitHeight: 38
+                implicitHeight: 36
                 radius: 8
                 readonly property bool isSelected: formRoot.selectedCategory === "Work"
                 activeFocusOnTab: true
@@ -179,10 +179,10 @@ ColumnLayout {
                 Keys.onRightPressed: formRoot.selectedCategory = "Learning"
 
                 color: isSelected 
-                       ? Theme.accentBlueBg 
+                       ? (Theme.isDark ? "#20232B" : "#FFFFFF") 
                        : (workHover.hovered || catWork.activeFocus ? Theme.surfaceCardHover : Theme.surfaceInput)
-                border.color: isSelected ? Theme.accentBlue : (catWork.activeFocus ? Theme.accentBlue : Theme.borderDefault)
-                border.width: 1
+                border.color: isSelected ? Theme.borderFocus : Theme.borderDefault
+                border.width: isSelected ? 1.5 : 1
 
                 Behavior on color { ColorAnimation { duration: 120 } }
                 Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -194,18 +194,18 @@ ColumnLayout {
                         anchors.verticalCenter: parent.verticalCenter
                         name: "briefcase"
                         size: 12
-                        color: catWork.isSelected ? Theme.accentBlue : Theme.textPrimary
+                        color: catWork.isSelected ? Theme.accentBlue : Theme.textSecondary
                     }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: "Work"
                         font.pixelSize: 12
                         font.bold: catWork.isSelected
-                        color: catWork.isSelected ? Theme.accentBlue : Theme.textPrimary
+                        color: catWork.isSelected ? Theme.textPrimary : Theme.textSecondary
                     }
                 }
 
-                HoverHandler { id: workHover }
+                HoverHandler { id: workHover; cursorShape: Qt.PointingHandCursor }
                 TapHandler { onTapped: formRoot.selectedCategory = "Work" }
             }
 
@@ -213,7 +213,7 @@ ColumnLayout {
             Rectangle {
                 id: catLearn
                 Layout.fillWidth: true
-                implicitHeight: 38
+                implicitHeight: 36
                 radius: 8
                 readonly property bool isSelected: formRoot.selectedCategory === "Learning"
                 activeFocusOnTab: true
@@ -222,10 +222,10 @@ ColumnLayout {
                 Keys.onRightPressed: formRoot.selectedCategory = "Personal"
 
                 color: isSelected 
-                       ? Theme.accentAmberBg 
+                       ? (Theme.isDark ? "#20232B" : "#FFFFFF") 
                        : (learnHover.hovered || catLearn.activeFocus ? Theme.surfaceCardHover : Theme.surfaceInput)
-                border.color: isSelected ? Theme.accentAmber : (catLearn.activeFocus ? Theme.accentAmber : Theme.borderDefault)
-                border.width: 1
+                border.color: isSelected ? Theme.borderFocus : Theme.borderDefault
+                border.width: isSelected ? 1.5 : 1
 
                 Behavior on color { ColorAnimation { duration: 120 } }
                 Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -237,18 +237,18 @@ ColumnLayout {
                         anchors.verticalCenter: parent.verticalCenter
                         name: "book-open"
                         size: 12
-                        color: catLearn.isSelected ? Theme.accentAmber : Theme.textPrimary
+                        color: catLearn.isSelected ? Theme.accentBlue : Theme.textSecondary
                     }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: "Learning"
                         font.pixelSize: 12
                         font.bold: catLearn.isSelected
-                        color: catLearn.isSelected ? Theme.accentAmber : Theme.textPrimary
+                        color: catLearn.isSelected ? Theme.textPrimary : Theme.textSecondary
                     }
                 }
 
-                HoverHandler { id: learnHover }
+                HoverHandler { id: learnHover; cursorShape: Qt.PointingHandCursor }
                 TapHandler { onTapped: formRoot.selectedCategory = "Learning" }
             }
 
@@ -256,7 +256,7 @@ ColumnLayout {
             Rectangle {
                 id: catPers
                 Layout.fillWidth: true
-                implicitHeight: 38
+                implicitHeight: 36
                 radius: 8
                 readonly property bool isSelected: formRoot.selectedCategory === "Personal"
                 activeFocusOnTab: true
@@ -264,10 +264,10 @@ ColumnLayout {
                 Keys.onLeftPressed: formRoot.selectedCategory = "Learning"
 
                 color: isSelected 
-                       ? Theme.accentGreenBg 
+                       ? (Theme.isDark ? "#20232B" : "#FFFFFF") 
                        : (persHover.hovered || catPers.activeFocus ? Theme.surfaceCardHover : Theme.surfaceInput)
-                border.color: isSelected ? Theme.accentGreen : (catPers.activeFocus ? Theme.accentGreen : Theme.borderDefault)
-                border.width: 1
+                border.color: isSelected ? Theme.borderFocus : Theme.borderDefault
+                border.width: isSelected ? 1.5 : 1
 
                 Behavior on color { ColorAnimation { duration: 120 } }
                 Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -279,18 +279,18 @@ ColumnLayout {
                         anchors.verticalCenter: parent.verticalCenter
                         name: "user"
                         size: 12
-                        color: catPers.isSelected ? Theme.accentGreen : Theme.textPrimary
+                        color: catPers.isSelected ? Theme.accentBlue : Theme.textSecondary
                     }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: "Personal"
                         font.pixelSize: 12
                         font.bold: catPers.isSelected
-                        color: catPers.isSelected ? Theme.accentGreen : Theme.textPrimary
+                        color: catPers.isSelected ? Theme.textPrimary : Theme.textSecondary
                     }
                 }
 
-                HoverHandler { id: persHover }
+                HoverHandler { id: persHover; cursorShape: Qt.PointingHandCursor }
                 TapHandler { onTapped: formRoot.selectedCategory = "Personal" }
             }
         }

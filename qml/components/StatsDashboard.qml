@@ -9,34 +9,34 @@ GridLayout {
 
     property string timeframe: "Today"
 
-    // ── Responsive Breakpoints ────────────────────────────────────────────────
-    // Wide display (>800px): 4 cards in 1 row
-    // Half-screen snap / Tablet (440px-800px): 2 rows x 2 columns
+    // Responsive Breakpoints:
+    // Wide (>800px): 4 cards in 1 row
+    // Medium (440px-800px): 2 rows x 2 columns
     // Compact (<440px): 1 column x 4 rows
     columns: width > 800 ? 4 : (width > 440 ? 2 : 1)
     rowSpacing: 10
     columnSpacing: 10
 
-    // ── Reusable Stat Card Component ──────────────────────────────────────────
+    // ── Reusable Classic Stat Card Component ──────────────────────────────────
     component StatCard: Rectangle {
         id: cardRoot
         Layout.fillWidth: true
-        Layout.preferredHeight: 90
+        Layout.preferredHeight: 84
         radius: 10
         color: cardHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard
-        border.color: cardHover.hovered ? accentColor : Theme.borderDefault
+        border.color: cardHover.hovered ? Theme.borderFocus : Theme.borderDefault
         border.width: 1
 
         layer.enabled: !Theme.isDark
         layer.effect: MultiEffect {
             shadowEnabled: !Theme.isDark
-            shadowColor: "#0A000000"
+            shadowColor: "#08000000"
             shadowBlur: 0.35
             shadowVerticalOffset: 1
         }
 
-        Behavior on color { ColorAnimation { duration: 150 } }
-        Behavior on border.color { ColorAnimation { duration: 150 } }
+        Behavior on color { ColorAnimation { duration: 140 } }
+        Behavior on border.color { ColorAnimation { duration: 140 } }
 
         HoverHandler { id: cardHover }
 
@@ -44,35 +44,34 @@ GridLayout {
         required property string statValue
         required property string statTitle
         required property string statSubtitle
-        required property var    accentColor
+        required property color  accentColor
         property string tagText: ""
-        property color  tagColor: accentColor
         property bool   showProgressBar: false
-        property real   progressRatio: 0.0 // 0.0 to 1.0
+        property real   progressRatio: 0.0
 
-        // Rounded Icon Badge — pinned to top-right corner
+        // Subtle Icon Pill (Top-Right)
         Rectangle {
             id: iconBadge
-            width: 32
-            height: 32
+            width: 30
+            height: 30
             radius: 8
             anchors.top: parent.top
             anchors.topMargin: 12
             anchors.right: parent.right
             anchors.rightMargin: 14
-            color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, Theme.isDark ? 0.12 : 0.08)
-            border.color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, Theme.isDark ? 0.25 : 0.2)
+            color: Theme.surfaceBadge
+            border.color: Theme.borderSubtle
             border.width: 1
 
             LucideIcon {
                 anchors.centerIn: parent
                 name: cardRoot.iconName
-                size: 16
+                size: 15
                 color: cardRoot.accentColor
             }
         }
 
-        // Title and Primary Value
+        // Title and Value
         Column {
             anchors.left: parent.left
             anchors.leftMargin: 16
@@ -80,7 +79,7 @@ GridLayout {
             anchors.rightMargin: 10
             anchors.top: parent.top
             anchors.topMargin: 12
-            spacing: 2
+            spacing: 3
 
             Text {
                 text: statTitle
@@ -98,7 +97,7 @@ GridLayout {
             }
         }
 
-        // Bottom Row: Subtitle on left, contextual status badge or labeled progress on right
+        // Bottom Row: Subtitle & Progress
         RowLayout {
             anchors.left: parent.left
             anchors.leftMargin: 16
@@ -112,13 +111,13 @@ GridLayout {
                 Layout.alignment: Qt.AlignVCenter
                 text: statSubtitle
                 font.pixelSize: 11
-                color: accentColor
-                font.bold: true
+                color: Theme.textMuted
+                font.bold: false
             }
 
             Item { Layout.fillWidth: true }
 
-            // Clear, Labeled Progress Meter (Only shown for metrics where progress has clear meaning)
+            // Progress Meter
             RowLayout {
                 Layout.alignment: Qt.AlignVCenter
                 visible: cardRoot.showProgressBar
@@ -129,12 +128,12 @@ GridLayout {
                     text: Math.round(cardRoot.progressRatio * 100) + "%"
                     font.pixelSize: 11
                     font.bold: true
-                    color: cardRoot.accentColor
+                    color: Theme.accentGreen
                 }
 
                 Rectangle {
                     Layout.alignment: Qt.AlignVCenter
-                    implicitWidth: 46
+                    implicitWidth: 44
                     implicitHeight: 4
                     radius: 2
                     color: Theme.surfaceBadge
@@ -143,32 +142,20 @@ GridLayout {
                         height: parent.height
                         width: parent.width * Math.max(0.0, Math.min(1.0, cardRoot.progressRatio))
                         radius: 2
-                        color: cardRoot.accentColor
+                        color: Theme.accentGreen
 
                         Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
                     }
                 }
             }
 
-            // Contextual Status Pill (Used for count metrics where a progress bar is ambiguous)
-            Rectangle {
-                Layout.alignment: Qt.AlignVCenter
+            // Contextual Tag
+            Text {
                 visible: !cardRoot.showProgressBar && cardRoot.tagText.length > 0
-                radius: 10
-                implicitHeight: 18
-                implicitWidth: tagLabel.implicitWidth + 12
-                color: Qt.rgba(cardRoot.tagColor.r, cardRoot.tagColor.g, cardRoot.tagColor.b, Theme.isDark ? 0.15 : 0.12)
-                border.color: Qt.rgba(cardRoot.tagColor.r, cardRoot.tagColor.g, cardRoot.tagColor.b, 0.3)
-                border.width: 1
-
-                Text {
-                    id: tagLabel
-                    anchors.centerIn: parent
-                    text: cardRoot.tagText
-                    font.pixelSize: 10
-                    font.bold: true
-                    color: cardRoot.tagColor
-                }
+                text: cardRoot.tagText
+                font.pixelSize: 10
+                font.bold: true
+                color: Theme.textMuted
             }
         }
     }
@@ -179,9 +166,8 @@ GridLayout {
         statTitle: "TOTAL ACTIVITIES"
         statValue: activityModel.count.toString()
         statSubtitle: activityModel.count === 1 ? "1 item logged" : activityModel.count + " items logged"
-        accentColor: Theme.accentBlue
+        accentColor: Theme.textSecondary
         tagText: "All Tasks"
-        tagColor: Theme.accentBlue
         showProgressBar: false
     }
 
@@ -196,40 +182,32 @@ GridLayout {
         accentColor: Theme.accentGreen
         showProgressBar: activityModel.count > 0
         progressRatio: activityModel.count > 0 ? (activityService.completedCount / activityModel.count) : 0.0
-        tagText: activityModel.count === 0 ? "No tasks" : ""
-        tagColor: Theme.textMuted
     }
 
     // ── 3. Pending Card ───────────────────────────────────────────────────────
     StatCard {
-        iconName: "clock"
-        statTitle: "PENDING"
+        iconName: "zap"
+        statTitle: "IN PROGRESS"
         statValue: activityService.pendingCount.toString()
-        statSubtitle: activityService.pendingCount === 1 ? "1 in progress" : activityService.pendingCount + " in progress"
-        accentColor: Theme.accentAmber
+        statSubtitle: activityService.pendingCount === 1 ? "1 task active" : activityService.pendingCount + " tasks active"
+        accentColor: Theme.accentBlue
         showProgressBar: false
-        tagText: {
-            if (activityModel.count === 0) return "Ready";
-            if (activityService.pendingCount === 0) return "✓ All caught up";
-            return activityService.pendingCount === 1 ? "1 remaining" : activityService.pendingCount + " remaining";
-        }
-        tagColor: activityService.pendingCount === 0 ? Theme.accentGreen : Theme.accentAmber
+        tagText: activityService.pendingCount === 0 ? "All caught up" : ""
     }
 
     // ── 4. Time Tracked Card ──────────────────────────────────────────────────
     StatCard {
-        iconName: "flame"
+        iconName: "clock"
         statTitle: statsGrid.timeframe === "Today" ? "TIME TODAY" : "TIME TRACKED"
         statValue: formatBoth(statsGrid.timeframe === "Today" ? activityService.totalDurationToday : activityService.totalDurationAllTime)
-        statSubtitle: (statsGrid.timeframe === "Today" ? activityService.totalDurationToday : activityService.totalDurationAllTime) + " mins total tracked"
+        statSubtitle: (statsGrid.timeframe === "Today" ? activityService.totalDurationToday : activityService.totalDurationAllTime) + " mins total"
         accentColor: Theme.accentPurple
         showProgressBar: false
-        tagText: statsGrid.timeframe === "Today" ? "Daily Log" : statsGrid.timeframe
-        tagColor: Theme.accentPurple
+        tagText: statsGrid.timeframe === "Today" ? "Daily" : "All Time"
 
         function formatBoth(mins) {
-            if (!mins || mins <= 0) return "0 min"
-            if (mins < 60) return mins + " min"
+            if (!mins || mins <= 0) return "0m"
+            if (mins < 60) return mins + "m"
             const h = Math.floor(mins / 60)
             const m = mins % 60
             return m > 0 ? (h + "h " + m + "m") : (h + "h")

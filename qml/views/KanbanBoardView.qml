@@ -211,7 +211,7 @@ Item {
         property bool canAdd: false
 
         radius: 12
-        color: colDropArea.containsDrag ? Theme.surfaceCardHover : (Theme.isDark ? "#121215" : "#EDEFF2")
+        color: colDropArea.containsDrag ? Theme.surfaceCardHover : (Theme.isDark ? "#121215" : "#F1F5F9")
         border.color: colDropArea.containsDrag ? statusColor : Theme.borderDefault
         border.width: colDropArea.containsDrag ? 2 : 1
 
@@ -530,59 +530,37 @@ Item {
                                     }
                                 }
 
-                                // Priority Code Badge (P0, P1, P2, P3)
-                                Rectangle {
-                                    radius: 4
-                                    implicitWidth: prioKbRow.implicitWidth + 12
-                                    implicitHeight: 20
-                                    color: Theme.priorityBg(priority)
-                                    border.color: Theme.priorityBorder(priority)
-                                    border.width: 1
-
-                                    RowLayout {
-                                        id: prioKbRow
-                                        anchors.centerIn: parent
-                                        spacing: 4
-
-                                        Rectangle {
-                                            implicitWidth: 5
-                                            implicitHeight: 5
-                                            radius: 2.5
-                                            color: Theme.priorityColor(priority)
-                                        }
-
-                                        Text {
-                                            id: prioCardTxt
-                                            text: Theme.priorityCode(priority)
-                                            font.pixelSize: 9
-                                            font.bold: true
-                                            color: Theme.priorityColor(priority)
-                                        }
+                                // Priority Code Indicator: Clean Micro-Dot + Code
+                                RowLayout {
+                                    spacing: 3
+                                    Rectangle {
+                                        implicitWidth: 6
+                                        implicitHeight: 6
+                                        radius: 3
+                                        color: Theme.priorityColor(priority)
                                     }
-
-                                    ToolTip.visible: prioCardHover.hovered
-                                    ToolTip.text: Theme.priorityCode(priority) + " Priority"
-                                    ToolTip.delay: 350
-                                    HoverHandler { id: prioCardHover }
+                                    Text {
+                                        id: prioCardTxt
+                                        text: Theme.priorityCode(priority)
+                                        font.pixelSize: 10
+                                        font.bold: true
+                                        color: Theme.priorityColor(priority)
+                                    }
                                 }
 
-                                // Category Badge
-                                Rectangle {
-                                    radius: 4
-                                    implicitWidth: catLabel.implicitWidth + 14
-                                    implicitHeight: 20
-                                    color: Theme.surfaceBadge
-                                    border.color: Theme.borderDefault
-                                    border.width: 1
+                                Text {
+                                    text: "•"
+                                    font.pixelSize: 10
+                                    color: Theme.textMuted
+                                }
 
-                                    Text {
-                                        id: catLabel
-                                        anchors.centerIn: parent
-                                        text: category
-                                        font.pixelSize: 9
-                                        font.bold: true
-                                        color: Theme.textSecondary
-                                    }
+                                // Category Label
+                                Text {
+                                    id: catLabel
+                                    text: category
+                                    font.pixelSize: 10
+                                    font.bold: true
+                                    color: Theme.textSecondary
                                 }
                             }
 
