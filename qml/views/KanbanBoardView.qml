@@ -563,6 +563,37 @@ Item {
                                 }
                             }
 
+                            // Schedule / Timestamp context (fills empty void in card)
+                            RowLayout {
+                                visible: (scheduledStartTime && scheduledStartTime.toString().length > 0) || isOverdue
+                                Layout.fillWidth: true
+                                spacing: 4
+
+                                Components.LucideIcon {
+                                    name: "calendar"
+                                    size: 10
+                                    color: isOverdue ? Theme.accentRose : Theme.textMuted
+                                }
+                                Text {
+                                    text: {
+                                        if (!scheduledStartTime) return ""
+                                        const s = new Date(scheduledStartTime)
+                                        const fmt = (d) => {
+                                            const h = d.getHours() % 12 || 12
+                                            const m = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes()
+                                            const ampm = d.getHours() >= 12 ? 'PM' : 'AM'
+                                            return h + ":" + m + " " + ampm
+                                        }
+                                        if (!scheduledEndTime) return fmt(s)
+                                        const e = new Date(scheduledEndTime)
+                                        return fmt(s) + " – " + fmt(e)
+                                    }
+                                    font.pixelSize: 10
+                                    font.bold: isOverdue
+                                    color: isOverdue ? Theme.accentRose : Theme.textMuted
+                                }
+                            }
+
                             // Duration + Quick Actions Row
                             RowLayout {
                                 Layout.fillWidth: true
@@ -710,18 +741,33 @@ Item {
                                 // If Todo -> Show "Start" button
                                 Rectangle {
                                     visible: !done && itemStatus === "Created"
-                                    implicitWidth: 54; implicitHeight: 22; radius: 6
-                                    color: Theme.accentBlueBg; border.color: Theme.accentBlueBorder; border.width: 1
+                                    implicitHeight: 26
+                                    implicitWidth: startRow.implicitWidth + 14
+                                    radius: 6
+                                    color: startHov.hovered ? Theme.accentBlue : Theme.accentBlueBg
+                                    border.color: Theme.accentBlueBorder
+                                    border.width: 1
+
                                     RowLayout {
-                                        anchors.centerIn: parent; spacing: 3
-                                        Components.LucideIcon { name: "zap"; size: 10; color: Theme.accentBlue }
-                                        Text { text: "Start"; font.pixelSize: 10; font.bold: true; color: Theme.accentBlue }
+                                        id: startRow
+                                        anchors.centerIn: parent
+                                        spacing: 4
+                                        Components.LucideIcon {
+                                            name: "zap"
+                                            size: 11
+                                            color: startHov.hovered ? "#FFFFFF" : Theme.accentBlue
+                                        }
+                                        Text {
+                                            text: "Start"
+                                            font.pixelSize: 10
+                                            font.bold: true
+                                            color: startHov.hovered ? "#FFFFFF" : Theme.accentBlue
+                                        }
                                     }
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        preventStealing: true
-                                        onClicked: activityService.setActivityStatus(cardItemRoot.modelIndex, "In Progress")
+
+                                    HoverHandler { id: startHov; cursorShape: Qt.PointingHandCursor }
+                                    TapHandler {
+                                        onTapped: activityService.setActivityStatus(cardItemRoot.modelIndex, "In Progress")
                                     }
                                 }
 
@@ -729,30 +775,72 @@ Item {
                                 RowLayout {
                                     visible: !done && itemStatus === "In Progress"
                                     spacing: 4
+
                                     Rectangle {
-                                        implicitWidth: 42; implicitHeight: 22; radius: 6
-                                        color: Theme.surfaceBadge; border.color: Theme.borderDefault; border.width: 1
-                                        Text { anchors.centerIn: parent; text: "+15m"; font.pixelSize: 9; font.bold: true; color: Theme.accentBlue }
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            preventStealing: true
-                                            onClicked: activityService.extendActivity(cardItemRoot.modelIndex, 15)
+                                        implicitHeight: 26
+                                        implicitWidth: extRow.implicitWidth + 14
+                                        radius: 6
+                                        color: extHov.hovered ? Theme.accentPurpleBg : Theme.surfaceBadge
+                                        border.color: extHov.hovered ? Theme.accentPurple : Theme.borderDefault
+                                        border.width: 1
+
+                                        RowLayout {
+                                            id: extRow
+                                            anchors.centerIn: parent
+                                            spacing: 3
+                                            Components.LucideIcon {
+                                                name: "plus"
+                                                size: 10
+                                                color: Theme.accentPurple
+                                            }
+                                            Text {
+                                                text: "15m"
+                                                font.pixelSize: 10
+                                                font.bold: true
+                                                color: Theme.accentPurple
+                                            }
+                                        }
+
+                                        ToolTip.visible: extHov.hovered
+                                        ToolTip.text: "Add 15m overtime"
+                                        ToolTip.delay: 250
+                                        HoverHandler { id: extHov; cursorShape: Qt.PointingHandCursor }
+                                        TapHandler {
+                                            onTapped: activityService.extendActivity(cardItemRoot.modelIndex, 15)
                                         }
                                     }
+
                                     Rectangle {
-                                        implicitWidth: 46; implicitHeight: 22; radius: 6
-                                        color: Theme.accentGreenBg; border.color: Theme.accentGreenBorder; border.width: 1
+                                        implicitHeight: 26
+                                        implicitWidth: doneRow.implicitWidth + 14
+                                        radius: 6
+                                        color: doneHov.hovered ? Theme.accentGreen : Theme.accentGreenBg
+                                        border.color: Theme.accentGreenBorder
+                                        border.width: 1
+
                                         RowLayout {
-                                            anchors.centerIn: parent; spacing: 2
-                                            Components.LucideIcon { name: "check"; size: 10; color: Theme.accentGreen }
-                                            Text { text: "Done"; font.pixelSize: 10; font.bold: true; color: Theme.accentGreen }
+                                            id: doneRow
+                                            anchors.centerIn: parent
+                                            spacing: 4
+                                            Components.LucideIcon {
+                                                name: "check"
+                                                size: 11
+                                                color: doneHov.hovered ? "#FFFFFF" : Theme.accentGreen
+                                            }
+                                            Text {
+                                                text: "Done"
+                                                font.pixelSize: 10
+                                                font.bold: true
+                                                color: doneHov.hovered ? "#FFFFFF" : Theme.accentGreen
+                                            }
                                         }
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            preventStealing: true
-                                            onClicked: activityService.markComplete(cardItemRoot.modelIndex)
+
+                                        ToolTip.visible: doneHov.hovered
+                                        ToolTip.text: "Mark complete"
+                                        ToolTip.delay: 250
+                                        HoverHandler { id: doneHov; cursorShape: Qt.PointingHandCursor }
+                                        TapHandler {
+                                            onTapped: activityService.markComplete(cardItemRoot.modelIndex)
                                         }
                                     }
                                 }
@@ -760,47 +848,88 @@ Item {
                                 // If Done -> Show "Reopen" button
                                 Rectangle {
                                     visible: done
-                                    implicitWidth: 62; implicitHeight: 22; radius: 6
-                                    color: Theme.surfaceBadge; border.color: Theme.borderDefault; border.width: 1
+                                    implicitHeight: 26
+                                    implicitWidth: reopenRow.implicitWidth + 14
+                                    radius: 6
+                                    color: reopenHov.hovered ? Theme.accentGreenBg : Theme.surfaceBadge
+                                    border.color: reopenHov.hovered ? Theme.accentGreen : Theme.borderDefault
+                                    border.width: 1
+
                                     RowLayout {
-                                        anchors.centerIn: parent; spacing: 3
-                                        Components.LucideIcon { name: "rotate-ccw"; size: 10; color: Theme.accentGreen }
-                                        Text { text: "Reopen"; font.pixelSize: 10; font.bold: true; color: Theme.accentGreen }
+                                        id: reopenRow
+                                        anchors.centerIn: parent
+                                        spacing: 4
+                                        Components.LucideIcon {
+                                            name: "rotate-ccw"
+                                            size: 11
+                                            color: Theme.accentGreen
+                                        }
+                                        Text {
+                                            text: "Reopen"
+                                            font.pixelSize: 10
+                                            font.bold: true
+                                            color: Theme.accentGreen
+                                        }
                                     }
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        preventStealing: true
-                                        onClicked: activityService.reopenActivity(cardItemRoot.modelIndex)
+
+                                    ToolTip.visible: reopenHov.hovered
+                                    ToolTip.text: "Reopen activity"
+                                    ToolTip.delay: 250
+                                    HoverHandler { id: reopenHov; cursorShape: Qt.PointingHandCursor }
+                                    TapHandler {
+                                        onTapped: activityService.reopenActivity(cardItemRoot.modelIndex)
                                     }
                                 }
 
                                 // Dedicated Edit Task Button (Available across ALL statuses: Todo, In Progress, Done)
                                 Rectangle {
-                                    implicitWidth: 24
-                                    implicitHeight: 22
+                                    implicitWidth: 26
+                                    implicitHeight: 26
                                     radius: 6
-                                    color: editBtnHov.hovered ? Theme.surfaceBadge : "transparent"
-                                    border.color: editBtnHov.hovered ? Theme.borderDefault : "transparent"
+                                    color: editBtnHov.hovered ? Theme.accentBlueBg : Theme.surfaceBadge
+                                    border.color: editBtnHov.hovered ? Theme.accentBlue : Theme.borderDefault
                                     border.width: 1
 
                                     Components.LucideIcon {
                                         anchors.centerIn: parent
                                         name: "edit-3"
                                         size: 11
-                                        color: editBtnHov.hovered ? Theme.accentBlue : Theme.textMuted
+                                        color: editBtnHov.hovered ? Theme.accentBlue : Theme.textSecondary
                                     }
 
                                     ToolTip.visible: editBtnHov.hovered
-                                    ToolTip.text: "Edit task"
-                                    ToolTip.delay: 350
+                                    ToolTip.text: "Edit task details"
+                                    ToolTip.delay: 250
 
                                     HoverHandler { id: editBtnHov; cursorShape: Qt.PointingHandCursor }
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        preventStealing: true
-                                        onClicked: kanbanRoot.editRequested(cardItemRoot.modelIndex)
+                                    TapHandler {
+                                        onTapped: kanbanRoot.editRequested(cardItemRoot.modelIndex)
+                                    }
+                                }
+
+                                // Dedicated Delete Task Button on Kanban card
+                                Rectangle {
+                                    implicitWidth: 26
+                                    implicitHeight: 26
+                                    radius: 6
+                                    color: delBtnHov.hovered ? Theme.accentRedBg : Theme.surfaceBadge
+                                    border.color: delBtnHov.hovered ? Theme.accentRed : Theme.borderDefault
+                                    border.width: 1
+
+                                    Components.LucideIcon {
+                                        anchors.centerIn: parent
+                                        name: "trash-2"
+                                        size: 11
+                                        color: delBtnHov.hovered ? Theme.accentRed : Theme.textMuted
+                                    }
+
+                                    ToolTip.visible: delBtnHov.hovered
+                                    ToolTip.text: "Delete task"
+                                    ToolTip.delay: 250
+
+                                    HoverHandler { id: delBtnHov; cursorShape: Qt.PointingHandCursor }
+                                    TapHandler {
+                                        onTapped: activityService.removeActivity(cardItemRoot.modelIndex)
                                     }
                                 }
                             }

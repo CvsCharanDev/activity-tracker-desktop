@@ -447,229 +447,223 @@ Rectangle {
             }
         }
 
-        // ── Dedicated Time & Overtime Telemetry Metric Box (Center-Right) ───
-        Rectangle {
-            id: timeMetricCard
+        // ── Duration & Overtime Telemetry Pills (Horizontal, High-Density) ───
+        RowLayout {
+            id: timeMetricRow
             Layout.alignment: Qt.AlignVCenter
-            radius: 8
-            implicitHeight: 44
-            implicitWidth: Math.max(90, timeCol.implicitWidth + 24)
-            color: card.totalExtensions() > 0 ? (Theme.isDark ? "#241530" : "#FAF5FF") : Theme.surfaceBadge
-            border.color: card.totalExtensions() > 0 ? (Theme.isDark ? "#4A1A68" : "#E9D5FF") : Theme.borderDefault
-            border.width: 1
+            spacing: 6
 
-            ColumnLayout {
-                id: timeCol
-                anchors.centerIn: parent
-                spacing: 2
+            // Primary Tracked Duration Pill
+            Rectangle {
+                radius: 6
+                implicitHeight: 28
+                implicitWidth: durPillRow.implicitWidth + 16
+                color: card.totalExtensions() > 0 ? (Theme.isDark ? "#241530" : "#FAF5FF") : Theme.surfaceBadge
+                border.color: card.totalExtensions() > 0 ? (Theme.isDark ? "#4A1A68" : "#DDD6FE") : Theme.borderDefault
+                border.width: 1
 
-                // Top: Prominent Tracked Duration
                 RowLayout {
-                    Layout.alignment: Qt.AlignHCenter
-                    spacing: 4
+                    id: durPillRow
+                    anchors.centerIn: parent
+                    spacing: 5
+
                     LucideIcon {
                         name: "clock"
-                        size: 11
+                        size: 12
                         color: card.totalExtensions() > 0 ? Theme.accentPurple : Theme.textSecondary
                     }
                     Text {
                         text: card.formatDurationClean(card.durationMinutes)
-                        font.pixelSize: 12
+                        font.pixelSize: 11
                         font.bold: true
                         color: card.totalExtensions() > 0 ? (Theme.isDark ? "#F3E8FF" : "#6B21A8") : Theme.textPrimary
                     }
                 }
 
-                // Bottom: Overtime Telemetry
+                ToolTip.visible: durPillHover.hovered
+                ToolTip.text: {
+                    if (card.totalExtensions() > 0) {
+                        const extra = card.totalExtensions() * 15
+                        const base = Math.max(0, card.durationMinutes - extra)
+                        return "Total Tracked: " + card.formatDurationClean(card.durationMinutes) +
+                               "\n• Scheduled Base: " + card.formatDurationClean(base) +
+                               "\n• Overtime Added: +" + extra + "m (" + card.totalExtensions() + " sessions)"
+                    }
+                    return "Tracked Duration: " + card.formatDurationClean(card.durationMinutes)
+                }
+                ToolTip.delay: 250
+                HoverHandler { id: durPillHover; cursorShape: Qt.PointingHandCursor }
+            }
+
+            // Overtime Pill (Only shown if extra time exists)
+            Rectangle {
+                visible: card.totalExtensions() > 0
+                radius: 6
+                implicitHeight: 28
+                implicitWidth: extPillRow.implicitWidth + 14
+                color: Theme.accentPurpleBg
+                border.color: Theme.accentPurpleBorder
+                border.width: 1
+
                 RowLayout {
-                    Layout.alignment: Qt.AlignHCenter
-                    visible: card.totalExtensions() > 0
-                    spacing: 3
+                    id: extPillRow
+                    anchors.centerIn: parent
+                    spacing: 4
+
                     LucideIcon {
                         name: "sparkles"
-                        size: 9
+                        size: 11
                         color: Theme.accentPurple
                     }
                     Text {
                         text: "+" + (card.totalExtensions() * 15) + "m OT"
-                        font.pixelSize: 9
+                        font.pixelSize: 11
                         font.bold: true
                         color: Theme.accentPurple
                     }
                 }
-            }
 
-            ToolTip.visible: timeHover.hovered
-            ToolTip.text: {
-                if (card.totalExtensions() > 0) {
-                    const extra = card.totalExtensions() * 15
-                    const base = Math.max(0, card.durationMinutes - extra)
-                    return "Total Tracked: " + card.formatDurationClean(card.durationMinutes) +
-                           "\n• Scheduled Base: " + card.formatDurationClean(base) +
-                           "\n• Overtime Added: +" + extra + "m (" + card.totalExtensions() + " sessions)"
-                }
-                return "Tracked Duration: " + card.formatDurationClean(card.durationMinutes)
+                ToolTip.visible: extPillHover.hovered
+                ToolTip.text: "+" + (card.totalExtensions() * 15) + "m overtime added (" + card.totalExtensions() + " extensions)"
+                ToolTip.delay: 250
+                HoverHandler { id: extPillHover; cursorShape: Qt.PointingHandCursor }
             }
-            ToolTip.delay: 250
-            HoverHandler { id: timeHover; cursorShape: Qt.PointingHandCursor }
         }
 
         // ── Right Actions Deck (Reopen, +15m, Edit, Delete) ───────────────────
         RowLayout {
             Layout.alignment: Qt.AlignVCenter
             spacing: 6
-            opacity: cardHover.hovered || card.done ? 1.0 : (Theme.isDark ? 0.35 : 0.45)
+            opacity: cardHover.hovered || card.done ? 1.0 : 0.85
             Behavior on opacity { NumberAnimation { duration: 150 } }
 
             // Reopen Action Button (Visible when completed)
             Rectangle {
                 id: reopenBtn
                 visible: card.done
-                implicitWidth: 32
-                implicitHeight: 32
+                implicitHeight: 28
+                implicitWidth: reopenRow.implicitWidth + 14
                 radius: 6
-                color: reopenHover.hovered ? (Theme.isDark ? "#10281E" : "#DCFCE7") : "transparent"
-                border.color: reopenHover.hovered ? Theme.accentGreen : "transparent"
+                color: reopenHover.hovered ? Theme.accentGreenBg : Theme.surfaceBadge
+                border.color: reopenHover.hovered ? Theme.accentGreen : Theme.borderDefault
                 border.width: 1
 
-                scale: reopenHover.hovered ? 1.1 : 1.0
-                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
-
-                LucideIcon {
+                RowLayout {
+                    id: reopenRow
                     anchors.centerIn: parent
-                    name: "rotate-ccw"
-                    size: 14
-                    color: Theme.accentGreen
+                    spacing: 4
+                    LucideIcon {
+                        name: "rotate-ccw"
+                        size: 12
+                        color: Theme.accentGreen
+                    }
+                    Text {
+                        text: "Reopen"
+                        font.pixelSize: 11
+                        font.bold: true
+                        color: Theme.accentGreen
+                    }
                 }
 
                 ToolTip.visible: reopenHover.hovered
-                ToolTip.text: "Reopen"
-                ToolTip.delay: 350
+                ToolTip.text: "Reopen task"
+                ToolTip.delay: 250
 
-                HoverHandler { id: reopenHover }
-                TapHandler {
-                    onTapped: card.reopenRequested()
-                }
+                HoverHandler { id: reopenHover; cursorShape: Qt.PointingHandCursor }
+                TapHandler { onTapped: card.reopenRequested() }
             }
 
             // Quick Extension Action (+15m or Follow-up)
             Rectangle {
                 id: extBtn
-                implicitWidth: card.done ? 32 : 46
-                implicitHeight: 32
+                implicitHeight: 28
+                implicitWidth: extBtnRow.implicitWidth + 16
                 radius: 6
                 color: extHover.hovered 
-                       ? (card.done ? (Theme.isDark ? "#2A1838" : "#F3E8FF") : (Theme.isDark ? "#17263C" : "#EFF6FF"))
-                       : (cardHover.hovered ? (Theme.isDark ? "#1B2230" : "#F1F5F9") : "transparent")
+                       ? (card.done ? Theme.accentPurpleBg : Theme.accentBlueBg)
+                       : Theme.surfaceBadge
                 border.color: extHover.hovered 
                               ? (card.done ? Theme.accentPurple : Theme.accentBlue) 
-                              : (cardHover.hovered ? Theme.borderDefault : "transparent")
+                              : Theme.borderDefault
                 border.width: 1
 
-                scale: extHover.hovered ? 1.08 : 1.0
-                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
-
-                Row {
+                RowLayout {
+                    id: extBtnRow
                     anchors.centerIn: parent
-                    spacing: 3
+                    spacing: 4
                     LucideIcon {
-                        anchors.verticalCenter: parent.verticalCenter
                         name: card.done ? "sparkles" : "plus"
-                        size: 13
-                        color: card.done ? Theme.accentPurple : Theme.accentBlue
+                        size: 11
+                        color: extHover.hovered
+                               ? (card.done ? Theme.accentPurple : Theme.accentBlue)
+                               : (card.done ? Theme.accentPurple : Theme.textSecondary)
                     }
                     Text {
-                        visible: !card.done
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "15m"
+                        text: card.done ? "+15m" : "15m"
                         font.pixelSize: 11
                         font.bold: true
-                        color: Theme.accentBlue
+                        color: extHover.hovered
+                               ? (card.done ? Theme.accentPurple : Theme.accentBlue)
+                               : Theme.textSecondary
                     }
                 }
 
                 ToolTip.visible: extHover.hovered
-                ToolTip.text: "Add 15m"
-                ToolTip.delay: 350
+                ToolTip.text: card.done ? "Add 15m follow-up" : "Quick extend +15m"
+                ToolTip.delay: 250
 
-                HoverHandler { id: extHover }
-                TapHandler {
-                    onTapped: {
-                        card.extendRequested(15)
-                    }
-                }
+                HoverHandler { id: extHover; cursorShape: Qt.PointingHandCursor }
+                TapHandler { onTapped: card.extendRequested(15) }
             }
 
             // Edit / Details Button (Opens Activity Detail Modal)
             Rectangle {
                 id: editBtn
-                implicitWidth: 32
-                implicitHeight: 32
+                implicitWidth: 28
+                implicitHeight: 28
                 radius: 6
-                color: editHover.hovered 
-                       ? Theme.surfaceCardHover 
-                       : (cardHover.hovered ? (Theme.isDark ? "#1B2230" : "#F1F5F9") : "transparent")
-                border.color: editHover.hovered ? Theme.accentBlue : "transparent"
+                color: editHover.hovered ? Theme.accentBlueBg : Theme.surfaceBadge
+                border.color: editHover.hovered ? Theme.accentBlue : Theme.borderDefault
                 border.width: 1
-
-                scale: editHover.hovered ? 1.08 : 1.0
-                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
 
                 LucideIcon {
                     anchors.centerIn: parent
                     name: "edit-3"
-                    size: 13
-                    color: editHover.hovered ? Theme.accentBlue : Theme.textMuted
+                    size: 12
+                    color: editHover.hovered ? Theme.accentBlue : Theme.textSecondary
                 }
 
                 ToolTip.visible: editHover.hovered
-                ToolTip.text: "Edit activity"
-                ToolTip.delay: 350
+                ToolTip.text: "Edit task details"
+                ToolTip.delay: 250
 
                 HoverHandler { id: editHover; cursorShape: Qt.PointingHandCursor }
-                TapHandler {
-                    onTapped: card.editRequested()
-                }
+                TapHandler { onTapped: card.editRequested() }
             }
 
-            // Delete Button (Always Red with Framer-like Hover Spring & Rotation)
+            // Delete Button
             Rectangle {
                 id: delBtn
-                implicitWidth: 32
-                implicitHeight: 32
+                implicitWidth: 28
+                implicitHeight: 28
                 radius: 6
-                color: delHover.hovered 
-                       ? (Theme.isDark ? "#3A1418" : "#FEE2E2") 
-                       : (cardHover.hovered ? (Theme.isDark ? "#241014" : "#FFF1F2") : "transparent")
-                border.color: delHover.hovered 
-                              ? Theme.accentRed 
-                              : (cardHover.hovered ? Theme.accentRedBorder : "transparent")
+                color: delHover.hovered ? Theme.accentRedBg : Theme.surfaceBadge
+                border.color: delHover.hovered ? Theme.accentRed : Theme.borderDefault
                 border.width: 1
-
-                // Framer Motion style spring micro-interactions: scale + rotation tilt
-                scale: delHover.hovered ? 1.12 : 1.0
-                rotation: delHover.hovered ? -8 : 0
-
-                Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutBack } }
-                Behavior on rotation { NumberAnimation { duration: 160; easing.type: Easing.OutBack } }
-                Behavior on color { ColorAnimation { duration: 140 } }
-                Behavior on border.color { ColorAnimation { duration: 140 } }
 
                 LucideIcon {
                     anchors.centerIn: parent
                     name: "trash-2"
-                    size: 14
-                    color: Theme.accentRed // Crisp, vibrant red
+                    size: 12
+                    color: delHover.hovered ? Theme.accentRed : Theme.textMuted
                 }
 
                 ToolTip.visible: delHover.hovered
-                ToolTip.text: "Delete"
-                ToolTip.delay: 350
+                ToolTip.text: "Delete activity"
+                ToolTip.delay: 250
 
-                HoverHandler { id: delHover }
-                TapHandler {
-                    onTapped: card.removeRequested()
-                }
+                HoverHandler { id: delHover; cursorShape: Qt.PointingHandCursor }
+                TapHandler { onTapped: card.removeRequested() }
             }
         }
     }
