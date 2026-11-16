@@ -3,7 +3,6 @@
 #include "model/Activity.h"
 #include "model/ActivityListModel.h"
 #include "model/Session.h"
-#include "model/User.h"
 #include "service/ActivityService.h"
 #include "service/AuthService.h"
 #include "persistence/JsonStore.h"
