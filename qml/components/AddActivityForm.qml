@@ -13,6 +13,7 @@ ColumnLayout {
     property bool scheduleEnabled: false
     property var startTimeDate: new Date()
     property bool reminderAlertsEnabled: true
+    property int selectedPresetIndex: 0
     function focusNameField() { nameField.forceActiveFocus() }
 
     // ── Activity Name (Custom Desktop Input Field) ─────────────────────────────
@@ -584,7 +585,7 @@ ColumnLayout {
             visible: formRoot.scheduleEnabled
             spacing: 8
 
-            // Quick Start Time presets: Now, +15m, +1h, Tomorrow
+            // Quick Start Time presets: Now, +5m, +15m, +30m, Tomorrow
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 5
@@ -592,8 +593,9 @@ ColumnLayout {
                 Repeater {
                     model: [
                         { label: "Now", offsetMinutes: 0 },
+                        { label: "+5m", offsetMinutes: 5 },
                         { label: "+15m", offsetMinutes: 15 },
-                        { label: "+1h", offsetMinutes: 60 },
+                        { label: "+30m", offsetMinutes: 30 },
                         { label: "Tomorrow", offsetMinutes: 1440 }
                     ]
 
@@ -602,20 +604,28 @@ ColumnLayout {
                         Layout.fillWidth: true
                         implicitHeight: 26
                         radius: 5
-                        color: schedPreHov.hovered ? Theme.surfaceCardHover : Theme.surfaceInput
-                        border.color: Theme.borderDefault
+                        color: formRoot.selectedPresetIndex === index
+                               ? Theme.accentBlueBg
+                               : (schedPreHov.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
+                        border.color: formRoot.selectedPresetIndex === index
+                                      ? Theme.accentBlue
+                                      : Theme.borderDefault
                         border.width: 1
 
                         Text {
                             anchors.centerIn: parent
                             text: modelData.label
                             font.pixelSize: 11
-                            color: Theme.textSecondary
+                            font.bold: formRoot.selectedPresetIndex === index
+                            color: formRoot.selectedPresetIndex === index
+                                   ? Theme.accentBlue
+                                   : Theme.textSecondary
                         }
 
                         HoverHandler { id: schedPreHov; cursorShape: Qt.PointingHandCursor }
                         TapHandler {
                             onTapped: {
+                                formRoot.selectedPresetIndex = index
                                 const now = new Date()
                                 formRoot.startTimeDate = new Date(now.getTime() + modelData.offsetMinutes * 60000)
                             }
@@ -624,7 +634,7 @@ ColumnLayout {
                 }
             }
 
-            // Scheduled Window summary pill with Bell Reminder toggle
+            // Scheduled Window summary pill
             Rectangle {
                 Layout.fillWidth: true
                 implicitHeight: 34
@@ -662,32 +672,71 @@ ColumnLayout {
                         font.bold: true
                         color: Theme.textPrimary
                     }
+                }
+            }
 
-                    // Bell reminder alert toggle
-                    Rectangle {
-                        implicitWidth: 24
-                        implicitHeight: 24
-                        radius: 4
-                        color: formRoot.reminderAlertsEnabled ? Theme.accentBlueBg : "transparent"
-                        border.color: formRoot.reminderAlertsEnabled ? Theme.accentBlue : "transparent"
-                        border.width: 1
+            // Audio Alert Toggle & Preview Chime
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
 
+                // Toggle Alert ON / OFF pill
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 30
+                    radius: 6
+                    color: formRoot.reminderAlertsEnabled ? Theme.accentBlueBg : Theme.surfaceInput
+                    border.color: formRoot.reminderAlertsEnabled ? Theme.accentBlue : Theme.borderDefault
+                    border.width: 1
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 6
                         LucideIcon {
-                            anchors.centerIn: parent
                             name: "bell"
-                            size: 12
+                            size: 13
                             color: formRoot.reminderAlertsEnabled ? Theme.accentBlue : Theme.textMuted
                         }
-
-                        ToolTip.visible: bellHov.hovered
-                        ToolTip.text: formRoot.reminderAlertsEnabled ? "Notifications: Enabled" : "Notifications: Disabled"
-                        ToolTip.delay: 250
-
-                        HoverHandler { id: bellHov; cursorShape: Qt.PointingHandCursor }
-                        TapHandler {
-                            onTapped: formRoot.reminderAlertsEnabled = !formRoot.reminderAlertsEnabled
+                        Text {
+                            text: formRoot.reminderAlertsEnabled ? "Sound Alert: ON" : "Sound Alert: OFF"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: formRoot.reminderAlertsEnabled ? Theme.accentBlue : Theme.textMuted
                         }
                     }
+
+                    HoverHandler { id: soundTogHov; cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        onTapped: {
+                            formRoot.reminderAlertsEnabled = !formRoot.reminderAlertsEnabled
+                            if (formRoot.reminderAlertsEnabled) {
+                                activityService.playAlertSound()
+                            }
+                        }
+                    }
+                }
+
+                // Test Chime Button
+                Rectangle {
+                    implicitWidth: 62
+                    implicitHeight: 30
+                    radius: 6
+                    color: testSoundHov.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge
+                    border.color: Theme.borderDefault
+                    border.width: 1
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 4
+                        LucideIcon { name: "zap"; size: 11; color: Theme.accentPurple }
+                        Text { text: "Test"; font.pixelSize: 11; font.bold: true; color: Theme.textSecondary }
+                    }
+
+                    ToolTip.visible: testSoundHov.hovered
+                    ToolTip.text: "Preview alert sound chime"
+                    ToolTip.delay: 200
+                    HoverHandler { id: testSoundHov; cursorShape: Qt.PointingHandCursor }
+                    TapHandler { onTapped: activityService.playAlertSound() }
                 }
             }
         }

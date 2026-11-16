@@ -11,6 +11,13 @@
 #include <QString>
 #include <QTimer>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "user32.lib")
+#endif
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Constructor
 //
@@ -42,9 +49,9 @@ ActivityService::ActivityService(QObject *parent)
     }
 #endif
 
-    // Heartbeat timer checking for start & due schedule reminders every 30 seconds
+    // High-precision heartbeat timer checking for start & due schedule reminders every 2 seconds
     connect(&m_reminderTimer, &QTimer::timeout, this, &ActivityService::checkReminders);
-    m_reminderTimer.start(30000);
+    m_reminderTimer.start(2000); // 2-second heartbeat for responsive countdown & alerts
 
     // Immediate initial schedule evaluation on application startup
     QTimer::singleShot(500, this, &ActivityService::checkReminders);
@@ -475,13 +482,35 @@ void ActivityService::setReminderEnabled(int index, bool enabled)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// showDesktopNotification (Native OS tray toast with in-app fallback)
+// playAlertSound — Plays native OS notification chime
+// ─────────────────────────────────────────────────────────────────────────────
+void ActivityService::playAlertSound()
+{
+#ifdef Q_OS_WIN
+    // Play native Windows system alert chime asynchronously
+    if (!PlaySound(TEXT("Notification.Default"), NULL, SND_ALIAS | SND_ASYNC)) {
+        MessageBeep(MB_ICONASTERISK);
+    }
+#elif defined(QT_WIDGETS_LIB)
+    QApplication::beep();
+#endif
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// showDesktopNotification (Native OS tray toast with in-app fallback & audio)
 // ─────────────────────────────────────────────────────────────────────────────
 void ActivityService::showDesktopNotification(const QString &title, const QString &message)
 {
+    // 1. Audible Alert Chime
+    playAlertSound();
+
 #if defined(QT_WIDGETS_LIB)
+    // 2. Flash Window / Taskbar to bring immediate visual awareness
+    QApplication::alert(nullptr, 0);
+
+    // 3. Native Windows System Tray Balloon
     if (m_trayIcon && m_trayIcon->isVisible()) {
-        m_trayIcon->showMessage(title, message, QIcon(":/qt/qml/ActivityTracker/resources/icons/app_icon.svg"), 5000);
+        m_trayIcon->showMessage(title, message, QIcon(":/qt/qml/ActivityTracker/resources/icons/app_icon.svg"), 8000);
     }
 #else
     Q_UNUSED(title);
@@ -490,7 +519,7 @@ void ActivityService::showDesktopNotification(const QString &title, const QStrin
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// checkReminders — 30-second heartbeat evaluating scheduled milestones
+// checkReminders — 2-second high-precision evaluation of scheduled milestones
 // ─────────────────────────────────────────────────────────────────────────────
 void ActivityService::checkReminders()
 {
@@ -509,9 +538,9 @@ void ActivityService::checkReminders()
         if (a.snoozedUntil.isValid() && now < a.snoozedUntil)
             continue;
 
-        // 1. Scheduled Start Milestone (Window: scheduledStartTime - 60s to + 5m)
+        // 1. Scheduled Start Milestone (Window: scheduledStartTime - 15s to + 10m)
         if (a.scheduledStartTime.isValid() && !a.startNotified) {
-            if (now >= a.scheduledStartTime.addSecs(-60) && now <= a.scheduledStartTime.addSecs(300)) {
+            if (now >= a.scheduledStartTime.addSecs(-15) && now <= a.scheduledStartTime.addSecs(600)) {
                 m_model->setStartNotified(i, true);
                 stateChanged = true;
                 const QString timeStr = a.scheduledStartTime.toLocalTime().toString("h:mm AP");
@@ -523,7 +552,7 @@ void ActivityService::checkReminders()
 
         // 2. Scheduled End / Due Milestone (Window: at or past scheduledEndTime)
         if (a.scheduledEndTime.isValid() && !a.endNotified) {
-            if (now >= a.scheduledEndTime.addSecs(-30)) {
+            if (now >= a.scheduledEndTime.addSecs(-10)) {
                 m_model->setEndNotified(i, true);
                 stateChanged = true;
                 const QString timeStr = a.scheduledEndTime.toLocalTime().toString("h:mm AP");

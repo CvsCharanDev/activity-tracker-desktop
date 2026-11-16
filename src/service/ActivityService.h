@@ -85,6 +85,7 @@ public:
     Q_INVOKABLE void createExtension(int index, int minutes = 15);
     Q_INVOKABLE void snoozeActivity(int index, int minutes = 15);
     Q_INVOKABLE void setReminderEnabled(int index, bool enabled);
+    Q_INVOKABLE void playAlertSound();
     Q_INVOKABLE void checkReminders();
     Q_INVOKABLE void triggerSync();
     Q_INVOKABLE void refresh();

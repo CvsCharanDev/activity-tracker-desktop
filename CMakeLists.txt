@@ -112,9 +112,12 @@ qt_add_qml_module(ActivityTracker
     RESOURCES
         resources/icons/app_icon.svg
         resources/icons/arrow-up-down.svg
+        resources/icons/alert-triangle.svg
         resources/icons/bar-chart-2.svg
+        resources/icons/bell.svg
         resources/icons/book-open.svg
         resources/icons/briefcase.svg
+        resources/icons/calendar.svg
         resources/icons/check.svg
         resources/icons/chevron-down.svg
         resources/icons/clock.svg

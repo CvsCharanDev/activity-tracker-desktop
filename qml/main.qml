@@ -283,11 +283,6 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-        if (ToolTip.toolTip) {
-            ToolTip.toolTip.font.pixelSize = 11
-            ToolTip.toolTip.delay = 350
-            ToolTip.toolTip.timeout = 3500
-        }
         if (appSettings.x >= 0 && appSettings.y >= 0) {
             root.x = appSettings.x
             root.y = appSettings.y
@@ -409,6 +404,7 @@ ApplicationWindow {
             reminderToast.reminderMessage = message
             reminderToast.opacity = 1.0
             reminderAutoDismissTimer.restart()
+            activityService.playAlertSound()
         }
         function onDataRefreshed() {
             refreshToast.visible = true
