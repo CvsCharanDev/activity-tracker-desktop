@@ -1,7 +1,9 @@
 #include <QApplication>
+#include <QGuiApplication>
 #include <QCoreApplication>
 #include <QFont>
 #include <QQmlApplicationEngine>
+#include <QQmlEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
 #include <QIcon>
