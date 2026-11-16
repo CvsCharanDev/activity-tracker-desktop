@@ -10,6 +10,9 @@ ColumnLayout {
 
     property string selectedCategory: "Work"
     property string selectedPriority: "Medium"
+    property bool scheduleEnabled: false
+    property var startTimeDate: new Date()
+    property bool reminderAlertsEnabled: true
     function focusNameField() { nameField.forceActiveFocus() }
 
     // ── Activity Name (Custom Desktop Input Field) ─────────────────────────────
@@ -516,11 +519,185 @@ ColumnLayout {
         }
     }
 
+    // ── Scheduling & Notification Alerts (Phase 4) ───────────────────────────
+    ColumnLayout {
+        Layout.fillWidth: true
+        spacing: 8
+
+        RowLayout {
+            Layout.fillWidth: true
+            Row {
+                spacing: 6
+                LucideIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "calendar"
+                    size: 13
+                    color: formRoot.scheduleEnabled ? Theme.accentBlue : Theme.textSecondary
+                }
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Schedule & Alerts"
+                    color: formRoot.scheduleEnabled ? Theme.accentBlue : Theme.textSecondary
+                    font.pixelSize: 13
+                    font.bold: true
+                }
+            }
+
+            Item { Layout.fillWidth: true }
+
+            // Switch toggle
+            Rectangle {
+                implicitWidth: 36
+                implicitHeight: 20
+                radius: 10
+                color: formRoot.scheduleEnabled ? Theme.accentBlue : Theme.surfaceBadge
+                border.color: Theme.borderDefault
+                border.width: 1
+
+                Behavior on color { ColorAnimation { duration: 120 } }
+
+                Rectangle {
+                    width: 14
+                    height: 14
+                    radius: 7
+                    anchors.verticalCenter: parent.verticalCenter
+                    x: formRoot.scheduleEnabled ? parent.width - width - 3 : 3
+                    color: "#FFFFFF"
+                    Behavior on x { NumberAnimation { duration: 120 } }
+                }
+
+                HoverHandler { id: schedToggleHov; cursorShape: Qt.PointingHandCursor }
+                TapHandler {
+                    onTapped: {
+                        formRoot.scheduleEnabled = !formRoot.scheduleEnabled
+                        if (formRoot.scheduleEnabled) {
+                            formRoot.startTimeDate = new Date()
+                        }
+                    }
+                }
+            }
+        }
+
+        // Expanded scheduling controls
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: formRoot.scheduleEnabled
+            spacing: 8
+
+            // Quick Start Time presets: Now, +15m, +1h, Tomorrow
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 5
+
+                Repeater {
+                    model: [
+                        { label: "Now", offsetMinutes: 0 },
+                        { label: "+15m", offsetMinutes: 15 },
+                        { label: "+1h", offsetMinutes: 60 },
+                        { label: "Tomorrow", offsetMinutes: 1440 }
+                    ]
+
+                    delegate: Rectangle {
+                        id: schedPresetPill
+                        Layout.fillWidth: true
+                        implicitHeight: 26
+                        radius: 5
+                        color: schedPreHov.hovered ? Theme.surfaceCardHover : Theme.surfaceInput
+                        border.color: Theme.borderDefault
+                        border.width: 1
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: modelData.label
+                            font.pixelSize: 11
+                            color: Theme.textSecondary
+                        }
+
+                        HoverHandler { id: schedPreHov; cursorShape: Qt.PointingHandCursor }
+                        TapHandler {
+                            onTapped: {
+                                const now = new Date()
+                                formRoot.startTimeDate = new Date(now.getTime() + modelData.offsetMinutes * 60000)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Scheduled Window summary pill with Bell Reminder toggle
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 34
+                radius: 6
+                color: Theme.surfaceBadge
+                border.color: Theme.borderDefault
+                border.width: 1
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    spacing: 8
+
+                    LucideIcon {
+                        name: "clock"
+                        size: 11
+                        color: Theme.accentBlue
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: {
+                            const start = formRoot.startTimeDate
+                            const end = new Date(start.getTime() + durationSpinBox.value * 60000)
+                            const fmt = (d) => {
+                                const h = d.getHours() % 12 || 12
+                                const m = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes()
+                                const ampm = d.getHours() >= 12 ? 'PM' : 'AM'
+                                return h + ":" + m + " " + ampm
+                            }
+                            return fmt(start) + " → " + fmt(end)
+                        }
+                        font.pixelSize: 11
+                        font.bold: true
+                        color: Theme.textPrimary
+                    }
+
+                    // Bell reminder alert toggle
+                    Rectangle {
+                        implicitWidth: 24
+                        implicitHeight: 24
+                        radius: 4
+                        color: formRoot.reminderAlertsEnabled ? Theme.accentBlueBg : "transparent"
+                        border.color: formRoot.reminderAlertsEnabled ? Theme.accentBlue : "transparent"
+                        border.width: 1
+
+                        LucideIcon {
+                            anchors.centerIn: parent
+                            name: "bell"
+                            size: 12
+                            color: formRoot.reminderAlertsEnabled ? Theme.accentBlue : Theme.textMuted
+                        }
+
+                        ToolTip.visible: bellHov.hovered
+                        ToolTip.text: formRoot.reminderAlertsEnabled ? "Notifications: Enabled" : "Notifications: Disabled"
+                        ToolTip.delay: 250
+
+                        HoverHandler { id: bellHov; cursorShape: Qt.PointingHandCursor }
+                        TapHandler {
+                            onTapped: formRoot.reminderAlertsEnabled = !formRoot.reminderAlertsEnabled
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // ── Add Button ────────────────────────────────────────────────────────────
     ShadcnButton {
         id: addBtn
         Layout.fillWidth: true
-        Layout.topMargin: 6
+        Layout.topMargin: 4
         size: "lg"
         variant: "default"
         iconName: "plus"
@@ -530,14 +707,117 @@ ColumnLayout {
         KeyNavigation.tab: nameField
 
         onClicked: {
-            activityService.addActivity(
-                nameField.text.trim(),
-                formRoot.selectedCategory,
-                durationSpinBox.value,
-                formRoot.selectedPriority
-            )
+            if (formRoot.scheduleEnabled) {
+                const start = formRoot.startTimeDate
+                const end = new Date(start.getTime() + durationSpinBox.value * 60000)
+                activityService.addActivityWithSchedule(
+                    nameField.text.trim(),
+                    formRoot.selectedCategory,
+                    durationSpinBox.value,
+                    formRoot.selectedPriority,
+                    start.toISOString(),
+                    end.toISOString(),
+                    formRoot.reminderAlertsEnabled
+                )
+            } else {
+                activityService.addActivity(
+                    nameField.text.trim(),
+                    formRoot.selectedCategory,
+                    durationSpinBox.value,
+                    formRoot.selectedPriority
+                )
+            }
             nameField.text = ""
             nameField.forceActiveFocus()
+        }
+    }
+
+    // ── Daily Focus Target & Productivity Card (Fills Sidebar purposeful space) ──
+    Rectangle {
+        Layout.fillWidth: true
+        Layout.topMargin: 8
+        implicitHeight: 110
+        radius: 8
+        color: Theme.surfaceCard
+        border.color: Theme.borderDefault
+        border.width: 1
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 12
+            spacing: 6
+
+            RowLayout {
+                Layout.fillWidth: true
+                Text {
+                    text: "DAILY FOCUS TARGET"
+                    font.pixelSize: 10
+                    font.bold: true
+                    color: Theme.textSecondary
+                    font.letterSpacing: 0.5
+                }
+                Item { Layout.fillWidth: true }
+                Rectangle {
+                    radius: 4
+                    implicitHeight: 16
+                    implicitWidth: streakText.implicitWidth + 8
+                    color: Theme.accentAmberBg
+                    border.color: Theme.accentAmberBorder
+                    border.width: 1
+                    Text {
+                        id: streakText
+                        anchors.centerIn: parent
+                        text: "🔥 3-Day Streak"
+                        font.pixelSize: 9
+                        font.bold: true
+                        color: Theme.accentAmber
+                    }
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                Text {
+                    text: activityService.totalDurationToday + "m / " + (authService.dailyGoalMinutes || 240) + "m"
+                    font.pixelSize: 14
+                    font.bold: true
+                    color: Theme.textPrimary
+                }
+                Item { Layout.fillWidth: true }
+                Text {
+                    readonly property real ratio: Math.min(1.0, activityService.totalDurationToday / (authService.dailyGoalMinutes || 240))
+                    text: Math.round(ratio * 100) + "%"
+                    font.pixelSize: 12
+                    font.bold: true
+                    color: Theme.accentGreen
+                }
+            }
+
+            // Progress bar
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 6
+                radius: 3
+                color: Theme.surfaceBadge
+
+                Rectangle {
+                    height: parent.height
+                    width: parent.width * Math.max(0.0, Math.min(1.0, activityService.totalDurationToday / (authService.dailyGoalMinutes || 240)))
+                    radius: 3
+                    color: Theme.accentGreen
+                    Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+                }
+            }
+
+            Text {
+                text: activityService.totalDurationToday >= (authService.dailyGoalMinutes || 240)
+                      ? "🎉 Daily focus goal achieved!"
+                      : ((authService.dailyGoalMinutes || 240) - activityService.totalDurationToday) + " mins remaining to hit goal"
+                font.pixelSize: 10
+                color: Theme.textMuted
+                elide: Text.ElideRight
+                Layout.fillWidth: true
+            }
         }
     }
 

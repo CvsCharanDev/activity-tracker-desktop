@@ -379,6 +379,10 @@ Item {
                     required property string priority
                     required property int extensionCount
                     required property var createdAt
+                    required property var scheduledStartTime
+                    required property var scheduledEndTime
+                    required property bool reminderEnabled
+                    required property bool isOverdue
 
                     readonly property int modelIndex: index
                     readonly property string itemStatus: (status && status.length > 0) ? status : (done ? "Done" : "Created")
@@ -506,15 +510,16 @@ Item {
                                 // Priority Code Badge (P0, P1, P2, P3)
                                 Rectangle {
                                     radius: 4
-                                    implicitWidth: prioCardTxt.implicitWidth + 12
-                                    implicitHeight: 18
+                                    implicitWidth: prioKbRow.implicitWidth + 12
+                                    implicitHeight: 20
                                     color: Theme.priorityBg(priority)
                                     border.color: Theme.priorityBorder(priority)
                                     border.width: 1
 
                                     RowLayout {
+                                        id: prioKbRow
                                         anchors.centerIn: parent
-                                        spacing: 3
+                                        spacing: 4
 
                                         Rectangle {
                                             implicitWidth: 5
@@ -540,12 +545,13 @@ Item {
 
                                 // Category Badge
                                 Rectangle {
-                                    radius: 6
-                                    implicitWidth: catLabel.implicitWidth + 10
-                                    implicitHeight: 18
+                                    radius: 4
+                                    implicitWidth: catLabel.implicitWidth + 14
+                                    implicitHeight: 20
                                     color: Theme.surfaceBadge
                                     border.color: Theme.borderDefault
                                     border.width: 1
+
                                     Text {
                                         id: catLabel
                                         anchors.centerIn: parent
@@ -562,44 +568,139 @@ Item {
                                 Layout.fillWidth: true
                                 spacing: 6
 
-                                // Duration & Extra Time
+                                // Duration & Telemetry Badges
                                 RowLayout {
-                                    spacing: 4
-                                    Components.LucideIcon { name: "clock"; size: 10; color: Theme.textMuted }
-                                    Text {
-                                        text: kanbanRoot.formatDurationBoth(durationMinutes)
-                                        font.pixelSize: 10
-                                        font.bold: true
-                                        color: Theme.textMuted
+                                    spacing: 5
+                                    Layout.alignment: Qt.AlignVCenter
+
+                                    // Base/Total Tracked Duration Pill
+                                    Rectangle {
+                                        radius: 4
+                                        implicitHeight: 20
+                                        implicitWidth: durKbRow.implicitWidth + 12
+                                        color: extensionCount > 0 ? (Theme.isDark ? "#241530" : "#FAF5FF") : Theme.surfaceBadge
+                                        border.color: extensionCount > 0 ? (Theme.isDark ? "#4A1A68" : "#E9D5FF") : Theme.borderDefault
+                                        border.width: 1
+
+                                        RowLayout {
+                                            id: durKbRow
+                                            anchors.centerIn: parent
+                                            spacing: 4
+                                            Components.LucideIcon {
+                                                name: "clock"
+                                                size: 10
+                                                color: extensionCount > 0 ? Theme.accentPurple : Theme.textSecondary
+                                            }
+                                            Text {
+                                                text: kanbanRoot.formatDurationBoth(durationMinutes)
+                                                font.pixelSize: 9
+                                                font.bold: true
+                                                color: extensionCount > 0 ? (Theme.isDark ? "#F3E8FF" : "#6B21A8") : Theme.textSecondary
+                                            }
+                                        }
+
+                                        ToolTip.visible: durKbHov.hovered
+                                        ToolTip.text: {
+                                            if (extensionCount > 0) {
+                                                const extra = extensionCount * 15
+                                                const base = Math.max(0, durationMinutes - extra)
+                                                return "Total Duration: " + kanbanRoot.formatDurationBoth(durationMinutes) +
+                                                       "\n• Scheduled Base: " + kanbanRoot.formatDurationBoth(base) +
+                                                       "\n• Overtime Added: +" + extra + "m (" + extensionCount + " extensions)"
+                                            }
+                                            return "Total Duration: " + kanbanRoot.formatDurationBoth(durationMinutes)
+                                        }
+                                        ToolTip.delay: 300
+                                        HoverHandler { id: durKbHov }
                                     }
 
-                                    // Extra time indicator
+                                    // Extra time indicator (Non-clipped, perfectly padded)
                                     Rectangle {
                                         visible: extensionCount > 0
                                         radius: 4
-                                        implicitWidth: extKbTxt.implicitWidth + 8
-                                        implicitHeight: 16
+                                        implicitHeight: 20
+                                        implicitWidth: extKbRow.implicitWidth + 12
                                         color: Theme.accentPurpleBg
                                         border.color: Theme.accentPurpleBorder
                                         border.width: 1
 
                                         RowLayout {
+                                            id: extKbRow
                                             anchors.centerIn: parent
-                                            spacing: 2
-                                            Components.LucideIcon { name: "sparkles"; size: 8; color: Theme.accentPurple }
+                                            spacing: 3
+                                            Components.LucideIcon {
+                                                name: "sparkles"
+                                                size: 9
+                                                color: Theme.accentPurple
+                                            }
                                             Text {
                                                 id: extKbTxt
-                                                text: "+" + (extensionCount * 15) + "m"
-                                                font.pixelSize: 8
+                                                text: "+" + (extensionCount * 15) + "m OT"
+                                                font.pixelSize: 9
                                                 font.bold: true
                                                 color: Theme.accentPurple
                                             }
                                         }
 
                                         ToolTip.visible: extKbHover.hovered
-                                        ToolTip.text: "+" + (extensionCount * 15) + "m extra time"
-                                        ToolTip.delay: 350
+                                        ToolTip.text: "+" + (extensionCount * 15) + "m overtime added"
+                                        ToolTip.delay: 300
                                         HoverHandler { id: extKbHover }
+                                    }
+
+                                    // Overdue badge (if past deadline)
+                                    Rectangle {
+                                        visible: !done && isOverdue
+                                        radius: 4
+                                        implicitHeight: 20
+                                        implicitWidth: overdueKbRow.implicitWidth + 12
+                                        color: Theme.accentRoseBg
+                                        border.color: Theme.accentRoseBorder
+                                        border.width: 1
+
+                                        RowLayout {
+                                            id: overdueKbRow
+                                            anchors.centerIn: parent
+                                            spacing: 3
+                                            Components.LucideIcon {
+                                                name: "alert-triangle"
+                                                size: 9
+                                                color: Theme.accentRose
+                                            }
+                                            Text {
+                                                id: overdueKbTxt
+                                                text: "Overdue"
+                                                font.pixelSize: 9
+                                                font.bold: true
+                                                color: Theme.accentRose
+                                            }
+                                        }
+
+                                        ToolTip.visible: overdueKbHover.hovered
+                                        ToolTip.text: "Task is past its scheduled deadline"
+                                        ToolTip.delay: 300
+                                        HoverHandler { id: overdueKbHover }
+                                    }
+
+                                    // Bell icon (if reminder enabled)
+                                    Rectangle {
+                                        visible: !done && reminderEnabled
+                                        radius: 4
+                                        implicitHeight: 20
+                                        implicitWidth: 18
+                                        color: "transparent"
+
+                                        Components.LucideIcon {
+                                            anchors.centerIn: parent
+                                            name: "bell"
+                                            size: 10
+                                            color: Theme.accentBlue
+                                        }
+
+                                        ToolTip.visible: bellKbHover.hovered
+                                        ToolTip.text: "Reminders active for this activity"
+                                        ToolTip.delay: 300
+                                        HoverHandler { id: bellKbHover }
                                     }
                                 }
 

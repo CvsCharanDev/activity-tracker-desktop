@@ -26,6 +26,8 @@ private slots:
     void testSessionSecurityAndHashing();
     void testSessionRemoteRevocation();
     void testPreferencesSyncAndTour();
+    void testActivityScheduleRoles();
+    void testServiceScheduleAndReminders();
 };
 
 void TestActivityTracker::initTestCase()
@@ -261,6 +263,65 @@ void TestActivityTracker::testPreferencesSyncAndTour()
     QCOMPARE(auth.preferences().sidebarDock, QString("right"));
     QCOMPARE(auth.preferences().sidebarCollapsed, true);
     QCOMPARE(auth.preferences().hasSeenTour, true);
+}
+
+void TestActivityTracker::testActivityScheduleRoles()
+{
+    ActivityListModel model;
+    const QDateTime now = QDateTime::currentDateTime();
+    const QDateTime start = now.addSecs(-3600);
+    const QDateTime end = now.addSecs(-1800); // Past end -> Overdue
+
+    Activity a = Activity::create("Overdue Task", "Work", 30, "High", start, end, true);
+    model.addActivity(a);
+
+    QCOMPARE(model.count(), 1);
+    QModelIndex idx = model.index(0, 0);
+    QCOMPARE(model.data(idx, ActivityListModel::ScheduledStartTimeRole).toString(), start.toString(Qt::ISODate));
+    QCOMPARE(model.data(idx, ActivityListModel::ScheduledEndTimeRole).toString(), end.toString(Qt::ISODate));
+    QCOMPARE(model.data(idx, ActivityListModel::ReminderEnabledRole).toBool(), true);
+    QCOMPARE(model.data(idx, ActivityListModel::ScheduleStatusRole).toString(), QString("Overdue"));
+    QCOMPARE(model.data(idx, ActivityListModel::IsOverdueRole).toBool(), true);
+    QCOMPARE(model.data(idx, ActivityListModel::ScheduledDurationRole).toInt(), 30);
+
+    // When status changes to In Progress, actualStartTime is populated
+    model.setStatus(0, "In Progress");
+    QVERIFY(!model.data(idx, ActivityListModel::ActualStartTimeRole).toString().isEmpty());
+
+    // When marked done, scheduleStatus becomes Completed and actualEndTime is set
+    model.setDone(0, true);
+    QCOMPARE(model.data(idx, ActivityListModel::ScheduleStatusRole).toString(), QString("Completed"));
+    QVERIFY(!model.data(idx, ActivityListModel::ActualEndTimeRole).toString().isEmpty());
+}
+
+void TestActivityTracker::testServiceScheduleAndReminders()
+{
+    ActivityService service;
+    const QDateTime now = QDateTime::currentDateTime();
+    const QDateTime start = now.addSecs(1800);
+    const QDateTime end = now.addSecs(3600);
+
+    // Add activity with schedule
+    service.addActivityWithSchedule("Upcoming Standup", "Work", 30, "P1", start.toString(Qt::ISODate), end.toString(Qt::ISODate), true);
+    QVERIFY(service.model()->count() > 0);
+
+    int idx = service.model()->count() - 1;
+    QVariantMap item = service.model()->get(idx);
+    QCOMPARE(item["name"].toString(), QString("Upcoming Standup"));
+    QCOMPARE(item["reminderEnabled"].toBool(), true);
+    QCOMPARE(item["scheduleStatus"].toString(), QString("Upcoming"));
+    QCOMPARE(item["scheduledDurationMinutes"].toInt(), 30);
+    QCOMPARE(item["durationMinutes"].toInt(), 30);
+
+    // Snooze by 15 mins preserves tracked duration and sets snoozedUntil
+    service.snoozeActivity(idx, 15);
+    QVariantMap snoozed = service.model()->get(idx);
+    QCOMPARE(snoozed["durationMinutes"].toInt(), 30); // Tracked duration is preserved!
+    QVERIFY(!snoozed["snoozedUntil"].toString().isEmpty());
+
+    // Toggle reminder
+    service.setReminderEnabled(idx, false);
+    QCOMPARE(service.model()->get(idx)["reminderEnabled"].toBool(), false);
 }
 
 QTEST_MAIN(TestActivityTracker)

@@ -18,7 +18,10 @@
 Activity Activity::create(const QString &name,
                           const QString &category,
                           int durationMinutes,
-                          const QString &priority)
+                          const QString &priority,
+                          const QDateTime &schedStart,
+                          const QDateTime &schedEnd,
+                          bool reminderEnabled)
 {
     Activity a;                                               // stack-allocated instance
     a.id               = QUuid::createUuid().toString(QUuid::WithoutBraces); // like crypto.randomUUID()
@@ -30,6 +33,11 @@ Activity Activity::create(const QString &name,
     a.priority         = priority.isEmpty() ? "Medium" : priority;
     a.extensionCount   = 0;
     a.createdAt        = QDateTime::currentDateTime();        // like new Date()
+    a.scheduledStartTime = schedStart;
+    a.scheduledEndTime   = schedEnd;
+    a.reminderEnabled  = reminderEnabled && a.hasSchedule();
+    a.startNotified    = false;
+    a.endNotified      = false;
     return a;                                                 // returned by value (cheap: compiler elides the copy)
 }
 

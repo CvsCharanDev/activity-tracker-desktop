@@ -19,6 +19,11 @@ Rectangle {
     required property string status
     required property string priority
     required property int    extensionCount
+    required property var    scheduledStartTime
+    required property var    scheduledEndTime
+    required property bool   reminderEnabled
+    required property string scheduleStatus
+    required property bool   isOverdue
 
     readonly property string activeStatus: (typeof card.status !== "undefined" && card.status && card.status.length > 0)
                                            ? card.status
@@ -96,6 +101,23 @@ Rectangle {
         const h = Math.floor(mins / 60)
         const m = mins % 60
         return m > 0 ? (h + "h " + m + "m") : (h + "h")
+    }
+
+    // Helper: Formats scheduled start and end window (e.g. 2:30 PM – 3:30 PM)
+    function formatScheduleWindow(startStr, endStr) {
+        if (!startStr || startStr.length === 0) return ""
+        const s = new Date(startStr)
+        if (isNaN(s.getTime())) return ""
+        const fmt = (d) => {
+            const h = d.getHours() % 12 || 12
+            const m = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes()
+            const ampm = d.getHours() >= 12 ? 'PM' : 'AM'
+            return h + ":" + m + " " + ampm
+        }
+        if (!endStr || endStr.length === 0) return fmt(s)
+        const e = new Date(endStr)
+        if (isNaN(e.getTime())) return fmt(s)
+        return fmt(s) + " – " + fmt(e)
     }
 
     // Helper: Clean display name (removes ugly legacy "(Extension)" text strings)
@@ -278,74 +300,6 @@ Rectangle {
                     }
                 }
 
-                // Duration pill (Clean, standard duration format)
-                Rectangle {
-                    radius: 6
-                    implicitWidth: durRow.implicitWidth + 12
-                    implicitHeight: 20
-                    color: Theme.surfaceBadge
-                    border.color: Theme.borderDefault
-                    border.width: 1
-
-                    Row {
-                        id: durRow
-                        anchors.centerIn: parent
-                        spacing: 4
-
-                        LucideIcon {
-                            anchors.verticalCenter: parent.verticalCenter
-                            name: "clock"
-                            size: 11
-                            color: Theme.textSecondary
-                        }
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: card.formatDurationClean(card.durationMinutes)
-                            font.pixelSize: 10
-                            color: Theme.textSecondary
-                            font.bold: true
-                        }
-                    }
-                }
-
-                // Extra Time / Extension Indicator (Directly grouped with duration!)
-                Rectangle {
-                    visible: card.totalExtensions() > 0
-                    radius: 6
-                    implicitWidth: extRow.implicitWidth + 12
-                    implicitHeight: 20
-                    color: Theme.accentPurpleBg
-                    border.color: Theme.accentPurpleBorder
-                    border.width: 1
-
-                    Row {
-                        id: extRow
-                        anchors.centerIn: parent
-                        spacing: 3
-
-                        LucideIcon {
-                            anchors.verticalCenter: parent.verticalCenter
-                            name: "sparkles"
-                            size: 10
-                            color: Theme.accentPurple
-                        }
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "+" + (card.totalExtensions() * 15) + "m extra"
-                            font.pixelSize: 10
-                            font.bold: true
-                            color: Theme.accentPurple
-                        }
-                    }
-
-                    ToolTip.visible: extBadgeHover.hovered
-                    ToolTip.text: "+" + (card.totalExtensions() * 15) + "m extra across " + card.totalExtensions() + " session" + (card.totalExtensions() > 1 ? "s" : "")
-                    ToolTip.delay: 350
-                    HoverHandler { id: extBadgeHover }
-                }
-
                 // In-Progress Indicator (Only shown if actively in-progress)
                 Rectangle {
                     visible: !card.done && card.activeStatus === "In Progress"
@@ -377,8 +331,103 @@ Rectangle {
                     }
                 }
 
-                // History Date / Timestamp (Clean, muted subtitle)
+                // Overdue Alert Badge (High-priority semantic deadline alert)
+                Rectangle {
+                    visible: !card.done && card.isOverdue
+                    radius: 6
+                    implicitWidth: overdueRow.implicitWidth + 12
+                    implicitHeight: 20
+                    color: Theme.accentRoseBg
+                    border.color: Theme.accentRoseBorder
+                    border.width: 1
+
+                    Row {
+                        id: overdueRow
+                        anchors.centerIn: parent
+                        spacing: 4
+
+                        LucideIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            name: "alert-triangle"
+                            size: 10
+                            color: Theme.accentRose
+                        }
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Overdue"
+                            font.pixelSize: 10
+                            font.bold: true
+                            color: Theme.accentRose
+                        }
+                    }
+
+                    ToolTip.visible: overdueHov.hovered
+                    ToolTip.text: "Task is past its scheduled deadline"
+                    ToolTip.delay: 250
+                    HoverHandler { id: overdueHov }
+                }
+
+                // Scheduled Window Pill (if scheduled)
+                Rectangle {
+                    visible: card.scheduledStartTime && card.scheduledStartTime.length > 0
+                    radius: 6
+                    implicitWidth: schedRow.implicitWidth + 12
+                    implicitHeight: 20
+                    color: Theme.surfaceBadge
+                    border.color: Theme.borderDefault
+                    border.width: 1
+
+                    Row {
+                        id: schedRow
+                        anchors.centerIn: parent
+                        spacing: 4
+
+                        LucideIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            name: "calendar"
+                            size: 10
+                            color: Theme.accentBlue
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: card.formatScheduleWindow(card.scheduledStartTime, card.scheduledEndTime)
+                            font.pixelSize: 10
+                            color: Theme.textSecondary
+                            font.bold: true
+                        }
+                    }
+
+                    ToolTip.visible: schedHov.hovered
+                    ToolTip.text: "Scheduled: " + card.formatScheduleWindow(card.scheduledStartTime, card.scheduledEndTime)
+                    ToolTip.delay: 250
+                    HoverHandler { id: schedHov }
+                }
+
+                // Reminder Bell Icon (if notifications active)
+                Rectangle {
+                    visible: !card.done && card.reminderEnabled
+                    radius: 4
+                    implicitWidth: 18
+                    implicitHeight: 20
+                    color: "transparent"
+
+                    LucideIcon {
+                        anchors.centerIn: parent
+                        name: "bell"
+                        size: 11
+                        color: Theme.accentBlue
+                    }
+
+                    ToolTip.visible: bellIconHov.hovered
+                    ToolTip.text: "Reminder alerts active"
+                    ToolTip.delay: 250
+                    HoverHandler { id: bellIconHov }
+                }
+
+                // Creation Timestamp (Muted)
                 Row {
+                    visible: !card.scheduledStartTime || card.scheduledStartTime.length === 0
                     spacing: 4
                     LucideIcon {
                         anchors.verticalCenter: parent.verticalCenter
@@ -396,6 +445,73 @@ Rectangle {
                     }
                 }
             }
+        }
+
+        // ── Dedicated Time & Overtime Telemetry Metric Box (Center-Right) ───
+        Rectangle {
+            id: timeMetricCard
+            Layout.alignment: Qt.AlignVCenter
+            radius: 8
+            implicitHeight: 44
+            implicitWidth: Math.max(90, timeCol.implicitWidth + 24)
+            color: card.totalExtensions() > 0 ? (Theme.isDark ? "#241530" : "#FAF5FF") : Theme.surfaceBadge
+            border.color: card.totalExtensions() > 0 ? (Theme.isDark ? "#4A1A68" : "#E9D5FF") : Theme.borderDefault
+            border.width: 1
+
+            ColumnLayout {
+                id: timeCol
+                anchors.centerIn: parent
+                spacing: 2
+
+                // Top: Prominent Tracked Duration
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
+                    spacing: 4
+                    LucideIcon {
+                        name: "clock"
+                        size: 11
+                        color: card.totalExtensions() > 0 ? Theme.accentPurple : Theme.textSecondary
+                    }
+                    Text {
+                        text: card.formatDurationClean(card.durationMinutes)
+                        font.pixelSize: 12
+                        font.bold: true
+                        color: card.totalExtensions() > 0 ? (Theme.isDark ? "#F3E8FF" : "#6B21A8") : Theme.textPrimary
+                    }
+                }
+
+                // Bottom: Overtime Telemetry
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
+                    visible: card.totalExtensions() > 0
+                    spacing: 3
+                    LucideIcon {
+                        name: "sparkles"
+                        size: 9
+                        color: Theme.accentPurple
+                    }
+                    Text {
+                        text: "+" + (card.totalExtensions() * 15) + "m OT"
+                        font.pixelSize: 9
+                        font.bold: true
+                        color: Theme.accentPurple
+                    }
+                }
+            }
+
+            ToolTip.visible: timeHover.hovered
+            ToolTip.text: {
+                if (card.totalExtensions() > 0) {
+                    const extra = card.totalExtensions() * 15
+                    const base = Math.max(0, card.durationMinutes - extra)
+                    return "Total Tracked: " + card.formatDurationClean(card.durationMinutes) +
+                           "\n• Scheduled Base: " + card.formatDurationClean(base) +
+                           "\n• Overtime Added: +" + extra + "m (" + card.totalExtensions() + " sessions)"
+                }
+                return "Tracked Duration: " + card.formatDurationClean(card.durationMinutes)
+            }
+            ToolTip.delay: 250
+            HoverHandler { id: timeHover; cursorShape: Qt.PointingHandCursor }
         }
 
         // ── Right Actions Deck (Reopen, +15m, Edit, Delete) ───────────────────

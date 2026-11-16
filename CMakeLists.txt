@@ -44,6 +44,7 @@ find_package(Qt6 6.4 REQUIRED COMPONENTS
     Quick       # QML engine, Qt Quick controls
     Qml         # QQmlApplicationEngine, QQmlContext
     QuickControls2  # ApplicationWindow, Button, TextField, etc.
+    Widgets     # QSystemTrayIcon, QApplication
     Test        # QTest unit testing framework
 )
 
@@ -161,6 +162,7 @@ target_link_libraries(ActivityTracker PRIVATE
     Qt6::Quick
     Qt6::Qml
     Qt6::QuickControls2
+    Qt6::Widgets
 )
 
 # ── Include Paths ─────────────────────────────────────────────────────────────
@@ -227,9 +229,9 @@ set_target_properties(tst_ActivityModel PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/tests"
 )
 
-add_test(NAME tst_ActivityModel COMMAND tst_ActivityModel)
+add_test(NAME tst_ActivityModel COMMAND tst_ActivityModel -o -,txt)
 if(WIN32)
     set_tests_properties(tst_ActivityModel PROPERTIES
-        ENVIRONMENT "PATH=$<TARGET_FILE_DIR:Qt6::Core>;$ENV{PATH}"
+        ENVIRONMENT "PATH=C:/Qt/6.9.3/msvc2022_64/bin;$ENV{PATH}"
     )
 endif()

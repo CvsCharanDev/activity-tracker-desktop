@@ -401,6 +401,15 @@ ApplicationWindow {
             errorBar.visible = true
             errorTimer.restart()
         }
+        function onActivityReminderTriggered(index, id, title, type, message) {
+            reminderToast.activityIndex = index
+            reminderToast.activityId = id
+            reminderToast.activityTitle = title
+            reminderToast.reminderType = type
+            reminderToast.reminderMessage = message
+            reminderToast.opacity = 1.0
+            reminderAutoDismissTimer.restart()
+        }
         function onDataRefreshed() {
             refreshToast.visible = true
             refToastTimer.restart()
@@ -722,7 +731,7 @@ ApplicationWindow {
                             font.pixelSize: 12
                         }
                         Text {
-                            text: activityService.totalDurationToday + " min"
+                            text: (root.activeTimeframe === "Today" ? activityService.totalDurationToday : activityService.totalDurationAllTime) + " min"
                             color: Theme.accentBlue
                             font.bold: true
                             font.pixelSize: 12
@@ -1307,7 +1316,7 @@ ApplicationWindow {
                                 }
 
                                 Text {
-                                    text: root.activePriorityFilter === "All" ? "All" : Theme.priorityCode(root.activePriorityFilter)
+                                    text: root.activePriorityFilter === "All" ? "Priority: All" : ("Priority: " + Theme.priorityCode(root.activePriorityFilter))
                                     font.pixelSize: 11
                                     font.bold: prioFilterBtn.isFiltered
                                     color: prioFilterBtn.isFiltered ? Theme.accentBlue : Theme.textSecondary
@@ -1622,6 +1631,197 @@ ApplicationWindow {
             id: errorTimer
             interval: 3500
             onTriggered: errorBar.visible = false
+        }
+    }
+
+    // ── Floating Interactive Activity Reminder Toast (Phase 6) ─────────────
+    Rectangle {
+        id: reminderToast
+        property int activityIndex: -1
+        property string activityId: ""
+        property string activityTitle: ""
+        property string reminderType: "start" // "start" | "due"
+        property string reminderMessage: ""
+
+        anchors {
+            top: parent.top
+            right: parent.right
+            topMargin: 56
+            rightMargin: 24
+        }
+        z: 999
+        visible: opacity > 0
+        opacity: 0.0
+        implicitWidth: Math.min(380, root.width - 48)
+        implicitHeight: reminderCol.implicitHeight + 24
+        radius: 10
+        color: Theme.surfaceCard
+        border.color: reminderType === "due" ? Theme.accentAmber : Theme.accentBlue
+        border.width: 1.5
+
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowColor: Theme.isDark ? "#80000000" : "#20000000"
+            shadowBlur: 0.8
+            shadowVerticalOffset: 6
+        }
+
+        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+        transform: Translate {
+            y: reminderToast.opacity > 0 ? 0 : -10
+            Behavior on y { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+        }
+
+        Timer {
+            id: reminderAutoDismissTimer
+            interval: 12000 // auto-dismiss after 12s if user doesn't interact
+            onTriggered: reminderToast.opacity = 0.0
+        }
+
+        ColumnLayout {
+            id: reminderCol
+            anchors.fill: parent
+            anchors.margins: 12
+            spacing: 8
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Rectangle {
+                    implicitWidth: 28
+                    implicitHeight: 28
+                    radius: 6
+                    color: reminderToast.reminderType === "due" ? Theme.accentAmberBg : Theme.accentBlueBg
+                    border.color: reminderToast.reminderType === "due" ? Theme.accentAmberBorder : Theme.accentBlueBorder
+                    border.width: 1
+
+                    Components.LucideIcon {
+                        anchors.centerIn: parent
+                        name: reminderToast.reminderType === "due" ? "clock" : "zap"
+                        size: 14
+                        color: reminderToast.reminderType === "due" ? Theme.accentAmber : Theme.accentBlue
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+
+                    Text {
+                        text: reminderToast.reminderType === "due" ? "TASK DUE / DEADLINE" : "TASK STARTING NOW"
+                        font.pixelSize: 10
+                        font.bold: true
+                        color: reminderToast.reminderType === "due" ? Theme.accentAmber : Theme.accentBlue
+                        font.letterSpacing: 0.5
+                    }
+
+                    Text {
+                        text: reminderToast.activityTitle
+                        font.pixelSize: 13
+                        font.bold: true
+                        color: Theme.textPrimary
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                    }
+                }
+
+                // Close / Dismiss X
+                Rectangle {
+                    implicitWidth: 22
+                    implicitHeight: 22
+                    radius: 4
+                    color: dismissHover.hovered ? Theme.surfaceBadge : "transparent"
+                    Components.LucideIcon {
+                        anchors.centerIn: parent
+                        name: "x"
+                        size: 12
+                        color: Theme.textMuted
+                    }
+                    HoverHandler { id: dismissHover; cursorShape: Qt.PointingHandCursor }
+                    TapHandler { onTapped: reminderToast.opacity = 0.0 }
+                }
+            }
+
+            Text {
+                text: reminderToast.reminderMessage
+                font.pixelSize: 11
+                color: Theme.textSecondary
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+
+            // Interactive Actions: [+15m Snooze] [Mark Done]
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 6
+                Layout.topMargin: 4
+
+                // Snooze +15m
+                Rectangle {
+                    implicitHeight: 28
+                    implicitWidth: snoozeTxt.implicitWidth + 16
+                    radius: 6
+                    color: snzHov.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge
+                    border.color: Theme.borderDefault
+                    border.width: 1
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 4
+                        Components.LucideIcon { name: "clock"; size: 11; color: Theme.textSecondary }
+                        Text {
+                            id: snoozeTxt
+                            text: "Snooze 15m"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: Theme.textPrimary
+                        }
+                    }
+
+                    HoverHandler { id: snzHov; cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        onTapped: {
+                            activityService.snoozeActivity(reminderToast.activityIndex, 15)
+                            reminderToast.opacity = 0.0
+                        }
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+
+                // Mark Done
+                Rectangle {
+                    implicitHeight: 28
+                    implicitWidth: doneTxt.implicitWidth + 16
+                    radius: 6
+                    color: Theme.accentGreenBg
+                    border.color: Theme.accentGreenBorder
+                    border.width: 1
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 4
+                        Components.LucideIcon { name: "check"; size: 11; color: Theme.accentGreen }
+                        Text {
+                            id: doneTxt
+                            text: "Mark Done"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: Theme.accentGreen
+                        }
+                    }
+
+                    HoverHandler { id: doneHov; cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        onTapped: {
+                            activityService.markComplete(reminderToast.activityIndex)
+                            reminderToast.opacity = 0.0
+                        }
+                    }
+                }
+            }
         }
     }
 

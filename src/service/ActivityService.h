@@ -1,7 +1,10 @@
 #pragma once
 
 #include <QObject>
+#include <QTimer>
 #include "model/ActivityListModel.h"
+
+class QSystemTrayIcon;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ActivityService — owns the model, handles mutations, triggers persistence.
@@ -49,6 +52,14 @@ public:
                                  int durationMinutes,
                                  const QString &priority = "Medium");
 
+    Q_INVOKABLE void addActivityWithSchedule(const QString &name,
+                                             const QString &category,
+                                             int durationMinutes,
+                                             const QString &priority,
+                                             const QString &startTimeIso,
+                                             const QString &endTimeIso,
+                                             bool reminderEnabled = true);
+
     Q_INVOKABLE void removeActivity(int index);
     Q_INVOKABLE void undoLastDelete();
     Q_INVOKABLE void markComplete(int index);
@@ -60,9 +71,21 @@ public:
                                     int durationMinutes,
                                     const QString &status,
                                     const QString &priority);
+    Q_INVOKABLE void updateActivitySchedule(int index,
+                                            const QString &name,
+                                            const QString &category,
+                                            int durationMinutes,
+                                            const QString &status,
+                                            const QString &priority,
+                                            const QString &startTimeIso,
+                                            const QString &endTimeIso,
+                                            bool reminderEnabled = true);
     Q_INVOKABLE void reopenActivity(int index);
     Q_INVOKABLE void extendActivity(int index, int additionalMinutes);
     Q_INVOKABLE void createExtension(int index, int minutes = 15);
+    Q_INVOKABLE void snoozeActivity(int index, int minutes = 15);
+    Q_INVOKABLE void setReminderEnabled(int index, bool enabled);
+    Q_INVOKABLE void checkReminders();
     Q_INVOKABLE void triggerSync();
     Q_INVOKABLE void refresh();
 
@@ -74,6 +97,7 @@ signals:
     void lastDeletedNameChanged();
     void syncStatusChanged();
     void activityRemoved(const QString &name);
+    void activityReminderTriggered(int index, const QString &activityId, const QString &name, const QString &type, const QString &message);
     void dataRefreshed();
 
     // Emitted when something goes wrong — QML can connect to show a toast/dialog
@@ -81,10 +105,13 @@ signals:
 
 private:
     void save();  // serializes current model to JsonStore
+    void showDesktopNotification(const QString &title, const QString &message);
 
     ActivityListModel *m_model = nullptr;  // owned: destroyed when 'this' is destroyed
     Activity m_lastDeletedActivity;
     int m_lastDeletedIndex = -1;
     bool m_canUndo = false;
     QString m_syncStatus = "synced"; // "syncing", "synced", "offline"
+    QTimer m_reminderTimer;
+    QSystemTrayIcon *m_trayIcon = nullptr;
 };

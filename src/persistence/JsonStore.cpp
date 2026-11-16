@@ -40,6 +40,19 @@ bool JsonStore::save(const QVector<Activity> &activities)
         obj["priority"]        = a.priority.isEmpty() ? "Medium" : a.priority;
         obj["extensionCount"]  = a.extensionCount;
         obj["createdAt"]       = a.createdAt.toString(Qt::ISODate);  // ISO 8601 string
+        if (a.scheduledStartTime.isValid())
+            obj["scheduledStartTime"] = a.scheduledStartTime.toString(Qt::ISODate);
+        if (a.scheduledEndTime.isValid())
+            obj["scheduledEndTime"]   = a.scheduledEndTime.toString(Qt::ISODate);
+        if (a.actualStartTime.isValid())
+            obj["actualStartTime"]    = a.actualStartTime.toString(Qt::ISODate);
+        if (a.actualEndTime.isValid())
+            obj["actualEndTime"]      = a.actualEndTime.toString(Qt::ISODate);
+        if (a.snoozedUntil.isValid())
+            obj["snoozedUntil"]       = a.snoozedUntil.toString(Qt::ISODate);
+        obj["reminderEnabled"]        = a.reminderEnabled;
+        obj["startNotified"]          = a.startNotified;
+        obj["endNotified"]            = a.endNotified;
         array.append(obj);
     }
 
@@ -101,6 +114,32 @@ QVector<Activity> JsonStore::load()
         a.priority        = obj.contains("priority") ? obj["priority"].toString() : "Medium";
         a.extensionCount  = obj.contains("extensionCount") ? obj["extensionCount"].toInt() : 0;
         a.createdAt       = QDateTime::fromString(obj["createdAt"].toString(), Qt::ISODate);
+
+        if (obj.contains("scheduledStartTime") && !obj["scheduledStartTime"].toString().isEmpty()) {
+            a.scheduledStartTime = QDateTime::fromString(obj["scheduledStartTime"].toString(), Qt::ISODate);
+        } else if (obj.contains("startTime") && !obj["startTime"].toString().isEmpty()) {
+            a.scheduledStartTime = QDateTime::fromString(obj["startTime"].toString(), Qt::ISODate);
+        }
+
+        if (obj.contains("scheduledEndTime") && !obj["scheduledEndTime"].toString().isEmpty()) {
+            a.scheduledEndTime   = QDateTime::fromString(obj["scheduledEndTime"].toString(), Qt::ISODate);
+        } else if (obj.contains("endTime") && !obj["endTime"].toString().isEmpty()) {
+            a.scheduledEndTime   = QDateTime::fromString(obj["endTime"].toString(), Qt::ISODate);
+        }
+
+        if (obj.contains("actualStartTime") && !obj["actualStartTime"].toString().isEmpty()) {
+            a.actualStartTime    = QDateTime::fromString(obj["actualStartTime"].toString(), Qt::ISODate);
+        }
+        if (obj.contains("actualEndTime") && !obj["actualEndTime"].toString().isEmpty()) {
+            a.actualEndTime      = QDateTime::fromString(obj["actualEndTime"].toString(), Qt::ISODate);
+        }
+        if (obj.contains("snoozedUntil") && !obj["snoozedUntil"].toString().isEmpty()) {
+            a.snoozedUntil       = QDateTime::fromString(obj["snoozedUntil"].toString(), Qt::ISODate);
+        }
+
+        a.reminderEnabled = obj.contains("reminderEnabled") ? obj["reminderEnabled"].toBool() : false;
+        a.startNotified   = obj.contains("startNotified") ? obj["startNotified"].toBool() : false;
+        a.endNotified     = obj.contains("endNotified") ? obj["endNotified"].toBool() : false;
 
         if (a.id.isEmpty() || a.name.isEmpty())
             continue;            // skip malformed entries

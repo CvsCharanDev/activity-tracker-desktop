@@ -55,6 +55,11 @@ QtObject {
     readonly property color accentRedBg:      isDark ? "#450A0A" : "#FEF2F2"
     readonly property color accentRedBorder:  isDark ? "#7F1D1D" : "#FECACA"
 
+    // ── Semantic Accents: Rose (Overdue / Critical Deadline Alerts) ───────────
+    readonly property color accentRose:       isDark ? "#F43F5E" : "#E11D48"
+    readonly property color accentRoseBg:     isDark ? "#4C0519" : "#FFF1F2"
+    readonly property color accentRoseBorder: isDark ? "#881337" : "#FECDD3"
+
     // ── Semantic Priority Matrix (P0 Urgent, P1 High, P2 Medium, P3 Low) ─────
     function priorityCode(p) {
         switch(p) {

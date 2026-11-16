@@ -1,4 +1,4 @@
-#include <QGuiApplication>
+#include <QApplication>
 #include <QCoreApplication>
 #include <QFont>
 #include <QQmlApplicationEngine>
@@ -20,7 +20,8 @@ int main(int argc, char *argv[])
     QGuiApplication::setApplicationVersion("1.0.0");
 
     // ── Create the application ────────────────────────────────────────────────
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
+    app.setQuitOnLastWindowClosed(true);
     app.setWindowIcon(QIcon(":/qt/qml/ActivityTracker/resources/icons/app_icon.svg"));
 
     // ── High-legibility modern sans-serif typography (MERN / desktop aesthetic) ──

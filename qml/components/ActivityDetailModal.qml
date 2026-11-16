@@ -24,6 +24,10 @@ Dialog {
     property string currentPriority: "Medium"
     property int    currentExtensionCount: 0
     property string createdAtStr: ""
+    property var    scheduledStartTime: null
+    property var    scheduledEndTime: null
+    property bool   reminderEnabled: false
+    property bool   hasSchedule: false
 
     // Public method to open modal with a given activity's model properties
     function openForActivity(index) {
@@ -40,6 +44,11 @@ Dialog {
         currentStatus = item.status || (item.done ? "Done" : "Created");
         currentPriority = item.priority || "Medium";
         currentExtensionCount = item.extensionCount || 0;
+
+        scheduledStartTime = item.scheduledStartTime || null;
+        scheduledEndTime = item.scheduledEndTime || null;
+        reminderEnabled = !!item.reminderEnabled;
+        hasSchedule = !!(scheduledStartTime && scheduledStartTime.toString().length > 0);
 
         const date = item.createdAt ? new Date(item.createdAt) : new Date();
         createdAtStr = date.toLocaleString();
@@ -456,7 +465,119 @@ Dialog {
                     }
                 }
 
-                // ── 6. Timestamps & Audit Log ─────────────────────────────────
+                // ── 6. Scheduling & Alerts ──────────────────────────────────
+                Rectangle {
+                    Layout.fillWidth: true
+                    radius: 8
+                    implicitHeight: schedModalCol.implicitHeight + 20
+                    color: Theme.surfaceBadge
+                    border.color: detailModal.hasSchedule ? Theme.accentBlueBorder : Theme.borderDefault
+                    border.width: 1
+
+                    ColumnLayout {
+                        id: schedModalCol
+                        anchors.fill: parent
+                        anchors.margins: 10
+                        spacing: 8
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Row {
+                                spacing: 6
+                                LucideIcon {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    name: "calendar"
+                                    size: 13
+                                    color: detailModal.hasSchedule ? Theme.accentBlue : Theme.textSecondary
+                                }
+                                Text {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: "Schedule & Alerts"
+                                    font.pixelSize: 12
+                                    font.bold: true
+                                    color: detailModal.hasSchedule ? Theme.accentBlue : Theme.textSecondary
+                                }
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            // Toggle schedule
+                            Rectangle {
+                                implicitWidth: 36
+                                implicitHeight: 20
+                                radius: 10
+                                color: detailModal.hasSchedule ? Theme.accentBlue : (Theme.isDark ? "#27272A" : "#E4E4E7")
+                                border.color: Theme.borderDefault
+                                border.width: 1
+
+                                Rectangle {
+                                    width: 14
+                                    height: 14
+                                    radius: 7
+                                    y: 3
+                                    x: detailModal.hasSchedule ? 19 : 3
+                                    color: "#FFFFFF"
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                HoverHandler { id: schedTogHov; cursorShape: Qt.PointingHandCursor }
+                                TapHandler {
+                                    onTapped: {
+                                        detailModal.hasSchedule = !detailModal.hasSchedule
+                                        if (detailModal.hasSchedule && !detailModal.scheduledStartTime) {
+                                            const now = new Date()
+                                            detailModal.scheduledStartTime = now.toISOString()
+                                            const end = new Date(now.getTime() + detailModal.currentDuration * 60000)
+                                            detailModal.scheduledEndTime = end.toISOString()
+                                            detailModal.reminderEnabled = true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Expanded schedule details
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            visible: detailModal.hasSchedule
+                            spacing: 6
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    text: "Window: " + (detailModal.scheduledStartTime ? new Date(detailModal.scheduledStartTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "--") +
+                                          " – " + (detailModal.scheduledEndTime ? new Date(detailModal.scheduledEndTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "--")
+                                    font.pixelSize: 11
+                                    font.bold: true
+                                    color: Theme.textPrimary
+                                }
+                                Item { Layout.fillWidth: true }
+
+                                // Reminder notification toggle
+                                Row {
+                                    spacing: 4
+                                    LucideIcon {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        name: "bell"
+                                        size: 11
+                                        color: detailModal.reminderEnabled ? Theme.accentBlue : Theme.textMuted
+                                    }
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: detailModal.reminderEnabled ? "Reminders On" : "Muted"
+                                        font.pixelSize: 10
+                                        font.bold: true
+                                        color: detailModal.reminderEnabled ? Theme.accentBlue : Theme.textMuted
+                                    }
+                                    HoverHandler { id: remHov; cursorShape: Qt.PointingHandCursor }
+                                    TapHandler { onTapped: detailModal.reminderEnabled = !detailModal.reminderEnabled }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ── 7. Timestamps & Audit Log ─────────────────────────────────
                 Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: 36
@@ -478,12 +599,29 @@ Dialog {
                             color: Theme.textMuted
                         }
                         Item { Layout.fillWidth: true }
-                        Text {
+
+                        // Overtime Telemetry Badge
+                        Rectangle {
                             visible: detailModal.currentExtensionCount > 0
-                            text: detailModal.currentExtensionCount + " in-place extension(s)"
-                            font.pixelSize: 11
-                            font.bold: true
-                            color: Theme.accentPurple
+                            radius: 4
+                            implicitHeight: 20
+                            implicitWidth: modalExtRow.implicitWidth + 12
+                            color: Theme.accentPurpleBg
+                            border.color: Theme.accentPurpleBorder
+                            border.width: 1
+
+                            RowLayout {
+                                id: modalExtRow
+                                anchors.centerIn: parent
+                                spacing: 4
+                                LucideIcon { name: "sparkles"; size: 10; color: Theme.accentPurple }
+                                Text {
+                                    text: "+" + (detailModal.currentExtensionCount * 15) + "m Overtime (" + detailModal.currentExtensionCount + " sessions)"
+                                    font.pixelSize: 10
+                                    font.bold: true
+                                    color: Theme.accentPurple
+                                }
+                            }
                         }
                     }
                 }
@@ -545,6 +683,12 @@ Dialog {
                                 detailModal.currentStatus,
                                 detailModal.currentPriority
                             )
+                            if (detailModal.hasSchedule && detailModal.scheduledStartTime) {
+                                activityModel.setSchedule(detailModal.activityIndex, detailModal.scheduledStartTime, detailModal.scheduledEndTime)
+                            } else {
+                                activityModel.setSchedule(detailModal.activityIndex, null, null)
+                            }
+                            activityModel.setReminderEnabled(detailModal.activityIndex, detailModal.reminderEnabled)
                         }
                     }
                 }

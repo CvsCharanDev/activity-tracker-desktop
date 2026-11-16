@@ -42,7 +42,16 @@ public:
         StatusRole,
         PriorityRole,
         ExtensionCountRole,
-        CreatedAtRole
+        CreatedAtRole,
+        ScheduledStartTimeRole,
+        ScheduledEndTimeRole,
+        ActualStartTimeRole,
+        ActualEndTimeRole,
+        ScheduledDurationRole,
+        ReminderEnabledRole,
+        ScheduleStatusRole,
+        IsOverdueRole,
+        SnoozedUntilRole
     };
     Q_ENUM(ActivityRole)  // makes the enum accessible from QML
 
@@ -70,7 +79,20 @@ public:
     void setDuration(int index, int minutes);
     void setPriority(int index, const QString &priority);
     void incrementExtension(int index, int additionalMinutes);
-    void updateActivity(int index, const QString &name, const QString &category, int durationMinutes, const QString &status, const QString &priority);
+    void setSchedule(int index, const QDateTime &start, const QDateTime &end, bool reminder);
+    void setReminderEnabled(int index, bool enabled);
+    void setStartNotified(int index, bool notified);
+    void setEndNotified(int index, bool notified);
+    void setSnoozedUntil(int index, const QDateTime &until);
+    void updateActivity(int index,
+                        const QString &name,
+                        const QString &category,
+                        int durationMinutes,
+                        const QString &status,
+                        const QString &priority,
+                        const QDateTime &schedStart = QDateTime(),
+                        const QDateTime &schedEnd = QDateTime(),
+                        bool reminderEnabled = false);
 
     // ── Bulk load (used by persistence on startup) ────────────────────────────
     void resetWith(const QVector<Activity> &activities);
