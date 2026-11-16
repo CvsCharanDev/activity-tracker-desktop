@@ -28,6 +28,7 @@ class ActivityService : public QObject
     Q_PROPERTY(bool canUndo READ canUndo NOTIFY canUndoChanged)
     Q_PROPERTY(QString lastDeletedName READ lastDeletedName NOTIFY lastDeletedNameChanged)
     Q_PROPERTY(QString syncStatus READ syncStatus NOTIFY syncStatusChanged)
+    Q_PROPERTY(qint64 currentTimestamp READ currentTimestamp NOTIFY currentTimestampChanged)
 
     // The model itself — QML binds: model: activityService.model
     Q_PROPERTY(ActivityListModel* model READ model CONSTANT)
@@ -44,6 +45,7 @@ public:
     bool canUndo() const { return m_canUndo; }
     QString lastDeletedName() const { return m_lastDeletedActivity.name; }
     QString syncStatus() const { return m_syncStatus; }
+    qint64 currentTimestamp() const { return m_currentTimestamp; }
     ActivityListModel *model() const { return m_model; }
 
     // ── Q_INVOKABLE methods — callable from QML ───────────────────────────────
@@ -59,6 +61,12 @@ public:
                                              const QString &startTimeIso,
                                              const QString &endTimeIso,
                                              bool reminderEnabled = true);
+
+    Q_INVOKABLE void startTimerActivity(const QString &name,
+                                        const QString &category,
+                                        int durationMinutes,
+                                        const QString &priority,
+                                        bool reminderEnabled = true);
 
     Q_INVOKABLE void removeActivity(int index);
     Q_INVOKABLE void undoLastDelete();
@@ -99,6 +107,7 @@ signals:
     void syncStatusChanged();
     void activityRemoved(const QString &name);
     void activityReminderTriggered(int index, const QString &activityId, const QString &name, const QString &type, const QString &message);
+    void currentTimestampChanged();
     void dataRefreshed();
 
     // Emitted when something goes wrong — QML can connect to show a toast/dialog
@@ -113,6 +122,7 @@ private:
     int m_lastDeletedIndex = -1;
     bool m_canUndo = false;
     QString m_syncStatus = "synced"; // "syncing", "synced", "offline"
+    qint64 m_currentTimestamp = 0;
     QTimer m_reminderTimer;
     QSystemTrayIcon *m_trayIcon = nullptr;
 };

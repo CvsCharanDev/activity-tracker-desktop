@@ -300,14 +300,26 @@ Rectangle {
                     }
                 }
 
-                // In-Progress Indicator (Only shown if actively in-progress)
+                // In-Progress / Live Countdown Indicator
                 Rectangle {
                     visible: !card.done && card.activeStatus === "In Progress"
                     radius: 6
                     implicitWidth: inProgRow.implicitWidth + 12
                     implicitHeight: 20
-                    color: Theme.accentBlueBg
-                    border.color: Theme.accentBlueBorder
+                    color: {
+                        if (!card.scheduledEndTime || card.scheduledEndTime.length === 0) return Theme.accentBlueBg
+                        const diff = Math.floor((new Date(card.scheduledEndTime).getTime() - activityService.currentTimestamp) / 1000)
+                        if (diff <= 0) return Theme.accentRoseBg
+                        if (diff <= 300) return Theme.accentAmberBg
+                        return Theme.accentBlueBg
+                    }
+                    border.color: {
+                        if (!card.scheduledEndTime || card.scheduledEndTime.length === 0) return Theme.accentBlueBorder
+                        const diff = Math.floor((new Date(card.scheduledEndTime).getTime() - activityService.currentTimestamp) / 1000)
+                        if (diff <= 0) return Theme.accentRoseBorder
+                        if (diff <= 300) return Theme.accentAmberBorder
+                        return Theme.accentBlueBorder
+                    }
                     border.width: 1
 
                     Row {
@@ -317,16 +329,45 @@ Rectangle {
 
                         LucideIcon {
                             anchors.verticalCenter: parent.verticalCenter
-                            name: "zap"
+                            name: {
+                                if (!card.scheduledEndTime || card.scheduledEndTime.length === 0) return "zap"
+                                const diff = Math.floor((new Date(card.scheduledEndTime).getTime() - activityService.currentTimestamp) / 1000)
+                                return diff <= 0 ? "alert-triangle" : "zap"
+                            }
                             size: 10
-                            color: Theme.accentBlue
+                            color: {
+                                if (!card.scheduledEndTime || card.scheduledEndTime.length === 0) return Theme.accentBlue
+                                const diff = Math.floor((new Date(card.scheduledEndTime).getTime() - activityService.currentTimestamp) / 1000)
+                                if (diff <= 0) return Theme.accentRose
+                                if (diff <= 300) return Theme.accentAmber
+                                return Theme.accentBlue
+                            }
                         }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "In Progress"
+                            text: {
+                                if (!card.scheduledEndTime || card.scheduledEndTime.length === 0) return "In Progress"
+                                const diff = Math.floor((new Date(card.scheduledEndTime).getTime() - activityService.currentTimestamp) / 1000)
+                                if (diff <= 0) {
+                                    const over = Math.abs(diff)
+                                    const m = Math.floor(over / 60)
+                                    const s = over % 60
+                                    return "+" + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s) + " OT"
+                                }
+                                const m = Math.floor(diff / 60)
+                                const s = diff % 60
+                                return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s) + " left"
+                            }
                             font.pixelSize: 10
                             font.bold: true
-                            color: Theme.accentBlue
+                            font.family: "Segoe UI, Consolas, monospace"
+                            color: {
+                                if (!card.scheduledEndTime || card.scheduledEndTime.length === 0) return Theme.accentBlue
+                                const diff = Math.floor((new Date(card.scheduledEndTime).getTime() - activityService.currentTimestamp) / 1000)
+                                if (diff <= 0) return Theme.accentRose
+                                if (diff <= 300) return Theme.accentAmber
+                                return Theme.accentBlue
+                            }
                         }
                     }
                 }

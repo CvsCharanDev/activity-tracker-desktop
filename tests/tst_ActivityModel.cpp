@@ -322,6 +322,17 @@ void TestActivityTracker::testServiceScheduleAndReminders()
     // Toggle reminder
     service.setReminderEnabled(idx, false);
     QCOMPARE(service.model()->get(idx)["reminderEnabled"].toBool(), false);
+
+    // Test live timer from now
+    service.startTimerActivity("Pomodoro Sprint", "Work", 25, "P0", true);
+    int pIdx = service.model()->count() - 1;
+    QVariantMap pomodoro = service.model()->get(pIdx);
+    QCOMPARE(pomodoro["name"].toString(), QString("Pomodoro Sprint"));
+    QCOMPARE(pomodoro["status"].toString(), QString("In Progress"));
+    QCOMPARE(pomodoro["reminderEnabled"].toBool(), true);
+    QCOMPARE(pomodoro["durationMinutes"].toInt(), 25);
+    QVERIFY(!pomodoro["scheduledStartTime"].toString().isEmpty());
+    QVERIFY(!pomodoro["scheduledEndTime"].toString().isEmpty());
 }
 
 QTEST_MAIN(TestActivityTracker)

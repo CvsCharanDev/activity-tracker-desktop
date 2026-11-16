@@ -14,6 +14,7 @@ ColumnLayout {
     property var startTimeDate: new Date()
     property bool reminderAlertsEnabled: true
     property int selectedPresetIndex: 0
+    property string trackingMode: "timer" // "timer" (Focus Timer From Now) | "schedule" (Calendar Schedule Window)
     function focusNameField() { nameField.forceActiveFocus() }
 
     // ── Activity Name (Custom Desktop Input Field) ─────────────────────────────
@@ -579,23 +580,144 @@ ColumnLayout {
             }
         }
 
-        // Expanded scheduling controls
+        // Expanded scheduling & timer controls
         ColumnLayout {
             Layout.fillWidth: true
             visible: formRoot.scheduleEnabled
             spacing: 8
 
-            // Quick Start Time presets: Now, +5m, +15m, +30m, Tomorrow
+            // Segmented Mode Selector: Focus Timer (From Now) vs Schedule Window
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 32
+                radius: 6
+                color: Theme.surfaceInput
+                border.color: Theme.borderDefault
+                border.width: 1
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 2
+                    spacing: 2
+
+                    // Option 1: Live Focus Timer
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        radius: 4
+                        color: formRoot.trackingMode === "timer" ? Theme.accentBlueBg : "transparent"
+                        border.color: formRoot.trackingMode === "timer" ? Theme.accentBlue : "transparent"
+                        border.width: 1
+
+                        RowLayout {
+                            anchors.centerIn: parent
+                            spacing: 4
+                            LucideIcon {
+                                name: "zap"
+                                size: 11
+                                color: formRoot.trackingMode === "timer" ? Theme.accentBlue : Theme.textSecondary
+                            }
+                            Text {
+                                text: "Focus Timer"
+                                font.pixelSize: 11
+                                font.bold: formRoot.trackingMode === "timer"
+                                color: formRoot.trackingMode === "timer" ? Theme.accentBlue : Theme.textSecondary
+                            }
+                        }
+
+                        HoverHandler { id: timModHov; cursorShape: Qt.PointingHandCursor }
+                        TapHandler { onTapped: formRoot.trackingMode = "timer" }
+                    }
+
+                    // Option 2: Schedule Window
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        radius: 4
+                        color: formRoot.trackingMode === "schedule" ? Theme.accentBlueBg : "transparent"
+                        border.color: formRoot.trackingMode === "schedule" ? Theme.accentBlue : "transparent"
+                        border.width: 1
+
+                        RowLayout {
+                            anchors.centerIn: parent
+                            spacing: 4
+                            LucideIcon {
+                                name: "calendar"
+                                size: 11
+                                color: formRoot.trackingMode === "schedule" ? Theme.accentBlue : Theme.textSecondary
+                            }
+                            Text {
+                                text: "Schedule At"
+                                font.pixelSize: 11
+                                font.bold: formRoot.trackingMode === "schedule"
+                                color: formRoot.trackingMode === "schedule" ? Theme.accentBlue : Theme.textSecondary
+                            }
+                        }
+
+                        HoverHandler { id: schedModHov; cursorShape: Qt.PointingHandCursor }
+                        TapHandler { onTapped: formRoot.trackingMode = "schedule" }
+                    }
+                }
+            }
+
+            // Quick Focus Duration Presets (Visible when trackingMode === "timer")
             RowLayout {
                 Layout.fillWidth: true
+                visible: formRoot.trackingMode === "timer"
+                spacing: 5
+
+                Repeater {
+                    model: [
+                        { label: "5m", mins: 5 },
+                        { label: "15m", mins: 15 },
+                        { label: "25m 🍅", mins: 25 },
+                        { label: "45m", mins: 45 },
+                        { label: "60m", mins: 60 }
+                    ]
+
+                    delegate: Rectangle {
+                        Layout.fillWidth: true
+                        implicitHeight: 26
+                        radius: 5
+                        color: durationSpinBox.value === modelData.mins
+                               ? Theme.accentBlueBg
+                               : (focusPreHov.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
+                        border.color: durationSpinBox.value === modelData.mins
+                                      ? Theme.accentBlue
+                                      : Theme.borderDefault
+                        border.width: 1
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: modelData.label
+                            font.pixelSize: 11
+                            font.bold: durationSpinBox.value === modelData.mins
+                            color: durationSpinBox.value === modelData.mins
+                                   ? Theme.accentBlue
+                                   : Theme.textSecondary
+                        }
+
+                        HoverHandler { id: focusPreHov; cursorShape: Qt.PointingHandCursor }
+                        TapHandler {
+                            onTapped: {
+                                durationSpinBox.value = modelData.mins
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Quick Start Time presets (Visible when trackingMode === "schedule")
+            RowLayout {
+                Layout.fillWidth: true
+                visible: formRoot.trackingMode === "schedule"
                 spacing: 5
 
                 Repeater {
                     model: [
                         { label: "Now", offsetMinutes: 0 },
-                        { label: "+5m", offsetMinutes: 5 },
                         { label: "+15m", offsetMinutes: 15 },
-                        { label: "+30m", offsetMinutes: 30 },
+                        { label: "+1h", offsetMinutes: 60 },
                         { label: "Tomorrow", offsetMinutes: 1440 }
                     ]
 
@@ -742,32 +864,44 @@ ColumnLayout {
         }
     }
 
-    // ── Add Button ────────────────────────────────────────────────────────────
+    // ── Add / Start Button ────────────────────────────────────────────────────
     ShadcnButton {
         id: addBtn
         Layout.fillWidth: true
         Layout.topMargin: 4
         size: "lg"
         variant: "default"
-        iconName: "plus"
-        text: "Log Activity"
+        iconName: formRoot.scheduleEnabled && formRoot.trackingMode === "timer" ? "zap" : (formRoot.scheduleEnabled ? "calendar" : "plus")
+        text: formRoot.scheduleEnabled && formRoot.trackingMode === "timer"
+              ? "Start Focus Timer"
+              : (formRoot.scheduleEnabled ? "Schedule Activity" : "Log Activity")
         enabled: nameField.text.trim().length > 0
         activeFocusOnTab: true
         KeyNavigation.tab: nameField
 
         onClicked: {
             if (formRoot.scheduleEnabled) {
-                const start = formRoot.startTimeDate
-                const end = new Date(start.getTime() + durationSpinBox.value * 60000)
-                activityService.addActivityWithSchedule(
-                    nameField.text.trim(),
-                    formRoot.selectedCategory,
-                    durationSpinBox.value,
-                    formRoot.selectedPriority,
-                    start.toISOString(),
-                    end.toISOString(),
-                    formRoot.reminderAlertsEnabled
-                )
+                if (formRoot.trackingMode === "timer") {
+                    activityService.startTimerActivity(
+                        nameField.text.trim(),
+                        formRoot.selectedCategory,
+                        durationSpinBox.value,
+                        formRoot.selectedPriority,
+                        formRoot.reminderAlertsEnabled
+                    )
+                } else {
+                    const start = formRoot.startTimeDate
+                    const end = new Date(start.getTime() + durationSpinBox.value * 60000)
+                    activityService.addActivityWithSchedule(
+                        nameField.text.trim(),
+                        formRoot.selectedCategory,
+                        durationSpinBox.value,
+                        formRoot.selectedPriority,
+                        start.toISOString(),
+                        end.toISOString(),
+                        formRoot.reminderAlertsEnabled
+                    )
+                }
             } else {
                 activityService.addActivity(
                     nameField.text.trim(),

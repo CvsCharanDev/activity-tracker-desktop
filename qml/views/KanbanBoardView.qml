@@ -387,6 +387,29 @@ Item {
                     readonly property int modelIndex: index
                     readonly property string itemStatus: (status && status.length > 0) ? status : (done ? "Done" : "Created")
 
+                    // Live Countdown / Elapsed Calculator
+                    readonly property int remainingSeconds: {
+                        const _tick = activityService.currentTimestamp
+                        if (!scheduledEndTime || scheduledEndTime.toString().length === 0) return 0
+                        const endMs = new Date(scheduledEndTime).getTime()
+                        const nowMs = new Date().getTime()
+                        return Math.floor((endMs - nowMs) / 1000)
+                    }
+                    readonly property bool isOverdueTimer: remainingSeconds < 0
+                    readonly property bool isUrgentCountdown: remainingSeconds >= 0 && remainingSeconds <= 300
+                    readonly property string liveTimerText: {
+                        if (!scheduledEndTime || scheduledEndTime.toString().length === 0) return ""
+                        const absSec = Math.abs(remainingSeconds)
+                        const mins = Math.floor(absSec / 60)
+                        const secs = absSec % 60
+                        const pad = (n) => n < 10 ? "0" + n : "" + n
+                        if (isOverdueTimer) {
+                            return "+" + pad(mins) + ":" + pad(secs) + " OT"
+                        } else {
+                            return pad(mins) + ":" + pad(secs) + " left"
+                        }
+                    }
+
                     // Filter matching
                     readonly property bool matchesStatus: {
                         const _ver = kanbanRoot.modelVersion;
@@ -603,6 +626,39 @@ Item {
                                 RowLayout {
                                     spacing: 5
                                     Layout.alignment: Qt.AlignVCenter
+
+                                    // Live Focus Countdown Ticker (When In Progress)
+                                    Rectangle {
+                                        visible: !done && itemStatus === "In Progress" && cardItemRoot.liveTimerText.length > 0
+                                        radius: 4
+                                        implicitHeight: 20
+                                        implicitWidth: liveTimerKbRow.implicitWidth + 10
+                                        color: cardItemRoot.isOverdueTimer ? Theme.accentRoseBg : (cardItemRoot.isUrgentCountdown ? Theme.accentAmberBg : Theme.accentBlueBg)
+                                        border.color: cardItemRoot.isOverdueTimer ? Theme.accentRoseBorder : (cardItemRoot.isUrgentCountdown ? Theme.accentAmberBorder : Theme.accentBlueBorder)
+                                        border.width: 1
+
+                                        RowLayout {
+                                            id: liveTimerKbRow
+                                            anchors.centerIn: parent
+                                            spacing: 3
+                                            Components.LucideIcon {
+                                                name: cardItemRoot.isOverdueTimer ? "alert-triangle" : "zap"
+                                                size: 9
+                                                color: cardItemRoot.isOverdueTimer ? Theme.accentRose : (cardItemRoot.isUrgentCountdown ? Theme.accentAmber : Theme.accentBlue)
+                                            }
+                                            Text {
+                                                text: cardItemRoot.liveTimerText
+                                                font.pixelSize: 9
+                                                font.bold: true
+                                                color: cardItemRoot.isOverdueTimer ? Theme.accentRose : (cardItemRoot.isUrgentCountdown ? Theme.accentAmber : Theme.accentBlue)
+                                            }
+                                        }
+
+                                        ToolTip.visible: liveTimerKbHov.hovered
+                                        ToolTip.text: cardItemRoot.isOverdueTimer ? "Session exceeded schedule window" : "Focus time remaining"
+                                        ToolTip.delay: 250
+                                        HoverHandler { id: liveTimerKbHov }
+                                    }
 
                                     // Base/Total Tracked Duration Pill
                                     Rectangle {

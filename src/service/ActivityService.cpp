@@ -49,9 +49,15 @@ ActivityService::ActivityService(QObject *parent)
     }
 #endif
 
-    // High-precision heartbeat timer checking for start & due schedule reminders every 2 seconds
-    connect(&m_reminderTimer, &QTimer::timeout, this, &ActivityService::checkReminders);
-    m_reminderTimer.start(2000); // 2-second heartbeat for responsive countdown & alerts
+    m_currentTimestamp = QDateTime::currentMSecsSinceEpoch();
+
+    // 1-second high-precision ticker for real-time countdown, live telemetry, and alerts
+    connect(&m_reminderTimer, &QTimer::timeout, this, [this]() {
+        m_currentTimestamp = QDateTime::currentMSecsSinceEpoch();
+        Q_EMIT currentTimestampChanged();
+        checkReminders();
+    });
+    m_reminderTimer.start(1000); // 1-second heartbeat
 
     // Immediate initial schedule evaluation on application startup
     QTimer::singleShot(500, this, &ActivityService::checkReminders);
@@ -400,6 +406,45 @@ void ActivityService::addActivityWithSchedule(const QString &name,
 
     m_model->addActivity(a);
     save();
+
+    Q_EMIT totalDurationTodayChanged();
+    Q_EMIT statsChanged();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// startTimerActivity — Starts a live focus timer counting down from now
+// ─────────────────────────────────────────────────────────────────────────────
+void ActivityService::startTimerActivity(const QString &name,
+                                         const QString &category,
+                                         int durationMinutes,
+                                         const QString &priority,
+                                         bool reminderEnabled)
+{
+    const QString trimmed = name.trimmed();
+    if (trimmed.isEmpty()) {
+        Q_EMIT errorOccurred("Activity name cannot be empty.");
+        return;
+    }
+
+    const QDateTime now = QDateTime::currentDateTime();
+    const int dur = durationMinutes > 0 ? durationMinutes : 25;
+    const QDateTime end = now.addSecs(dur * 60);
+
+    Activity a = Activity::create(trimmed,
+                                 category.isEmpty() ? "Work" : category,
+                                 dur,
+                                 priority.isEmpty() ? "Medium" : priority,
+                                 now,
+                                 end,
+                                 reminderEnabled);
+    a.status = "In Progress";
+    a.actualStartTime = now;
+
+    m_model->addActivity(a);
+    save();
+
+    // Subtle audio confirmation that focus timer has started
+    playAlertSound();
 
     Q_EMIT totalDurationTodayChanged();
     Q_EMIT statsChanged();
